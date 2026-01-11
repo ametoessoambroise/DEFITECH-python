@@ -1743,7 +1743,7 @@ def progress_tracking():
             # Calculer le score
             total_questions = Question.query.filter_by(quiz_id=quiz.id).count()
             correct_answers = QuizAnswer.query.filter_by(
-                attempt_id=attempt.id, is_correct=True
+                quiz_attempt_id=attempt.id, is_correct=True
             ).count()
             score = (
                 round((correct_answers / total_questions * 100), 1)
@@ -1753,8 +1753,8 @@ def progress_tracking():
 
             # Calculer le temps passé (placeholder)
             time_spent = 0
-            if attempt.completed_at and attempt.started_at:
-                time_diff = attempt.completed_at - attempt.started_at
+            if attempt.end_time and attempt.start_time:
+                time_diff = attempt.end_time - attempt.start_time
                 time_spent = int(time_diff.total_seconds() / 60)  # en minutes
 
             recent_quizzes.append(
@@ -1762,7 +1762,7 @@ def progress_tracking():
                     "name": quiz.title,
                     "topic": quiz.quiz_type if quiz.quiz_type else "Quiz",
                     "score": score,
-                    "completed_at": attempt.completed_at,
+                    "completed_at": attempt.end_time,
                     "time_spent": time_spent if time_spent > 0 else 5,  # Minimum 5 min
                 }
             )

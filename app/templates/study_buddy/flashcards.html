@@ -95,7 +95,7 @@
     <!-- Liste des cartes -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {% for card in flashcards %}
-        <div
+        <div data-card-id="{{ card.id }}"
             class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="p-4 sm:p-6">
                 <!-- En-tête avec deck et actions -->
@@ -211,7 +211,7 @@
                 </div>
                 <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2 sm:gap-3">
                     <button type="button" id="confirmDeleteBtn"
-                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm transition-colors">
+                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
                         Supprimer
                     </button>
                     <button type="button" id="cancelDeleteBtn"
@@ -269,7 +269,7 @@
                 </div>
                 <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-2 sm:gap-3">
                     <button type="button" id="confirmCreateDeckBtn"
-                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm transition-colors">
+                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                         Créer
                     </button>
                     <button type="button" id="cancelCreateDeckBtn"
@@ -530,7 +530,7 @@
                 const btn = this;
                 const original = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" Création...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Création...';
 
                 try {
                     const name = document.getElementById('deckName')?.value?.trim();
