@@ -26,6 +26,7 @@ from flask_login import current_user, login_required
 # Local application imports
 from app.extensions import db
 from app.models.flashcard import Flashcard, FlashcardStatus
+from app.models.flashcard_deck import FlashcardDeck
 from app.models.quiz_models import (
     Question,
     Quiz,
@@ -1254,6 +1255,48 @@ def get_flashcards():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@study_buddy_bp.route("/api/flashcard-decks", methods=["GET"])
+@login_required
+def get_flashcard_decks_api():
+    try:
+        decks = FlashcardDeck.query.filter_by(user_id=current_user.id).order_by(
+            FlashcardDeck.created_at.desc()
+        )
+        return jsonify({"success": True, "data": [d.to_dict() for d in decks]}), 200
+    except Exception as e:
+        current_app.logger.error(f"Erreur lors de la récupération des decks: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@study_buddy_bp.route("/api/flashcard-decks", methods=["POST"])
+@login_required
+def create_flashcard_deck_api():
+    try:
+        data = request.get_json() or {}
+
+        name = (data.get("name") or "").strip()
+        if not name:
+            return jsonify({"success": False, "error": "Nom du deck requis"}), 400
+
+        description = (data.get("description") or "").strip() or None
+        color = (data.get("color") or "").strip() or None
+
+        deck = FlashcardDeck(
+            user_id=current_user.id,
+            name=name,
+            description=description,
+            color=color,
+        )
+        db.session.add(deck)
+        db.session.commit()
+
+        return jsonify({"success": True, "data": deck.to_dict()}), 201
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erreur lors de la création du deck: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @study_buddy_bp.route("/api/flashcards/<int:card_id>", methods=["GET"])
 @login_required
 def get_flashcard(card_id):
@@ -1483,9 +1526,14 @@ def flashcard_deck():
             .all()
         )
 
+    decks = FlashcardDeck.query.filter_by(user_id=current_user.id).order_by(
+        FlashcardDeck.created_at.desc()
+    )
+
     return render_template(
         "study_buddy/flashcards.html",
         flashcards=due_flashcards,
+        decks=decks,
         progress=progress,  # Ajout de la progression
     )
 
