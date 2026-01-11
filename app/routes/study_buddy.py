@@ -31,8 +31,6 @@ from app.models.quiz_models import (
     Quiz,
     QuizAnswer,
     QuizAttempt,
-    QuizQuestion,
-    QuizResponse,
 )
 from app.models.study_document import StudyDocument
 from app.models.study_progress import StudyProgress
@@ -1696,8 +1694,8 @@ def progress_tracking():
         quiz = attempt.quiz
         if quiz:
             # Calculer le score
-            total_questions = QuizQuestion.query.filter_by(quiz_id=quiz.id).count()
-            correct_answers = QuizResponse.query.filter_by(
+            total_questions = Question.query.filter_by(quiz_id=quiz.id).count()
+            correct_answers = QuizAnswer.query.filter_by(
                 attempt_id=attempt.id, is_correct=True
             ).count()
             score = (
