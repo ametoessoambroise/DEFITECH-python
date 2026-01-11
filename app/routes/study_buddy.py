@@ -1224,7 +1224,6 @@ def get_flashcards():
     try:
         # Récupérer les cartes de l'utilisateur
         flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
-
         # Préparer la réponse
         return (
             jsonify(
@@ -1233,8 +1232,8 @@ def get_flashcards():
                     "data": [
                         {
                             "id": card.id,
-                            "front": card.front,
-                            "back": card.back,
+                            "front": card.front_text,
+                            "back": card.back_text,
                             "deck_id": card.deck_id,
                             "created_at": (
                                 card.created_at.isoformat() if card.created_at else None
@@ -1287,8 +1286,8 @@ def get_flashcard(card_id):
                     "success": True,
                     "data": {
                         "id": card.id,
-                        "front": card.front,
-                        "back": card.back,
+                        "front": card.front_text,
+                        "back": card.back_text,
                         "deck_id": card.deck_id,
                         "created_at": (
                             card.created_at.isoformat() if card.created_at else None
@@ -1341,8 +1340,8 @@ def create_flashcard_api():
 
         # Création de la carte
         new_card = Flashcard(
-            front=data["front"],
-            back=data["back"],
+            front_text=data["front"],
+            back_text=data["back"],
             deck_id=data["deck_id"],
             user_id=current_user.id,
         )
@@ -1399,9 +1398,9 @@ def update_flashcard(card_id):
 
         # Mise à jour des champs
         if "front" in data:
-            card.front = data["front"]
+            card.front_text = data["front"]
         if "back" in data:
-            card.back = data["back"]
+            card.back_text = data["back"]
         if "deck_id" in data:
             card.deck_id = data["deck_id"]
 
