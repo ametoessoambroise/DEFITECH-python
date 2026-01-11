@@ -1,144 +1,736 @@
-{% extends "base.html" %} {% block title %}Connexion{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Connexion | DEFITECH{% endblock %} {%
+block content %}
+
+<!-- Version Desktop -->
 <div
-  class="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-8 px-6"
+  class="hidden lg:flex min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50 items-center justify-center p-8 relative overflow-hidden"
 >
+  <!-- Animated background elements -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div
+      class="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"
+    ></div>
+    <div
+      class="absolute top-40 right-20 w-72 h-72 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"
+    ></div>
+    <div
+      class="absolute -bottom-8 left-1/2 w-72 h-72 bg-cyan-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"
+    ></div>
+  </div>
+
   <div
-    class="w-full max-w-md bg-white shadow-lg rounded-2xl p-8 space-y-6 transition-all duration-300 hover:shadow-xl"
+    class="flex bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full relative z-10 border border-white/20"
   >
-    <!-- Logo -->
-    <div class="flex flex-col items-center text-center">
+    <!-- Section gauche - Fond décoratif avec animations -->
+    <div
+      class="w-1/2 relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 p-12 flex flex-col justify-between overflow-hidden"
+    >
+      <!-- Animated gradient overlay -->
       <div
-        class="bg-blue-600 h-16 w-16 flex items-center justify-center rounded-full shadow-md mb-4"
-      >
-        <i class="fas fa-graduation-cap text-white text-2xl"></i>
+        class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer"
+      ></div>
+
+      <!-- Formes décoratives animées -->
+      <div
+        class="absolute top-10 left-10 w-32 h-32 bg-blue-400/30 rounded-full animate-float"
+      ></div>
+      <div
+        class="absolute top-1/4 right-10 w-48 h-48 bg-white/10 rounded-full animate-float-delayed"
+      ></div>
+      <div
+        class="absolute bottom-20 left-20 w-64 h-64 bg-blue-700/20 rounded-full animate-pulse-slow"
+      ></div>
+      <div
+        class="absolute bottom-10 right-10 w-40 h-40 bg-white/20 rounded-full animate-float"
+      ></div>
+
+      <!-- Motifs géométriques -->
+      <div class="absolute top-12 left-12 animate-fade-in-up">
+        <div class="space-y-1">
+          <div class="w-6 h-1 bg-white/50 rounded-full"></div>
+          <div class="w-5 h-1 bg-white/50 ml-1 rounded-full"></div>
+          <div class="w-4 h-1 bg-white/50 ml-2 rounded-full"></div>
+        </div>
       </div>
-      <h1 class="text-3xl font-extrabold text-gray-900">Connexion DEFITECH</h1>
-      <p class="mt-2 text-sm text-gray-500">
-        Accédez à votre espace étudiant ou enseignant
-      </p>
+
+      <div class="absolute bottom-1/4 right-12 animate-fade-in-down">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="w-2 h-2 bg-white/50 rounded-full animate-ping-slow"></div>
+          <div
+            class="w-2 h-2 bg-white/50 rounded-full animate-ping-slow animation-delay-1000"
+          ></div>
+          <div
+            class="w-2 h-2 bg-white/50 rounded-full animate-ping-slow animation-delay-2000"
+          ></div>
+          <div
+            class="w-2 h-2 bg-white/50 rounded-full animate-ping-slow animation-delay-3000"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Logo avec animation -->
+      <div class="relative z-10 animate-fade-in-up">
+        <div
+          class="flex items-center space-x-3 text-white group cursor-pointer"
+        >
+          <img
+          src="https://res.cloudinary.com/dmokvhpjt/image/upload/v1766894416/bijcryrbjli0daglbsim.png"
+          alt="logo"
+          class="w-12 h-12 rounded-full bg-white"
+        />
+          <span class="text-2xl font-bold tracking-tight">DEFITECH</span>
+        </div>
+      </div>
+
+      <!-- Texte central avec animation -->
+      <div
+        class="relative z-10 text-white animate-fade-in-up animation-delay-500"
+      >
+        <h1 class="text-6xl font-bold mb-6 leading-tight">
+          Bonjour,<br />
+          <span
+            class="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent"
+            >bienvenue !</span
+          >
+        </h1>
+        <p class="text-blue-100 text-base leading-relaxed max-w-sm">
+          Connectez-vous pour accéder à votre espace et profiter de toutes les
+          fonctionnalités innovantes de DEFITECH.
+        </p>
+
+        <!-- Stats animées -->
+        <div class="grid grid-cols-3 gap-4 mt-8">
+          <div
+            class="text-center transform transition-all duration-300 hover:scale-110"
+          >
+            <div class="text-2xl font-bold">5K+</div>
+            <div class="text-xs text-blue-200">Étudiants</div>
+          </div>
+          <div
+            class="text-center transform transition-all duration-300 hover:scale-110"
+          >
+            <div class="text-2xl font-bold">200+</div>
+            <div class="text-xs text-blue-200">Cours</div>
+          </div>
+          <div
+            class="text-center transform transition-all duration-300 hover:scale-110"
+          >
+            <div class="text-2xl font-bold">98%</div>
+            <div class="text-xs text-blue-200">Satisfaction</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative z-10"></div>
     </div>
 
-    <!-- Formulaire -->
-    <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <!-- Section droite - Formulaire -->
+    <div
+      class="w-1/2 p-12 flex flex-col justify-center bg-white/50 backdrop-blur-sm"
+    >
+      <div class="animate-fade-in-up animation-delay-1000">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Connexion</h2>
+        <p class="text-gray-600 text-sm mb-8">
+          Accédez à votre espace personnel
+        </p>
+      </div>
 
-      <!-- Email -->
-      <div>
-        <label for="email" class="block text-sm font-medium text-gray-700"
-          >Adresse e-mail</label
+      <form
+        method="POST"
+        action="{{ url_for('auth.login') }}"
+        class="space-y-6 animate-fade-in-up animation-delay-1500"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <!-- Email avec icône -->
+        <div class="group">
+          <label
+            for="email"
+            class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600"
+          >
+            <i class="fas fa-envelope mr-2"></i>Adresse e-mail
+          </label>
+          <div class="relative">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              class="w-full rounded-xl border-2 border-gray-200 px-5 py-3.5 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 hover:border-gray-300 bg-white/80"
+              placeholder="nom@exemple.com"
+            />
+            <div
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 opacity-0 group-focus-within:opacity-100 transition-opacity"
+            >
+              <i
+                class="fas fa-check-circle text-green-500 hidden"
+                id="email-check"
+              ></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mot de passe avec toggle -->
+        <div class="group">
+          <label
+            for="password"
+            class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600"
+          >
+            <i class="fas fa-lock mr-2"></i>Mot de passe
+          </label>
+          <div class="relative">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              class="w-full rounded-xl border-2 border-gray-200 px-5 py-3.5 pr-12 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 hover:border-gray-300 bg-white/80"
+              placeholder="••••••••••••"
+            />
+            <button
+              type="button"
+              id="togglePassword"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+            >
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember me et Forgot password -->
+        <div class="flex items-center justify-between">
+          <label class="flex items-center space-x-2 cursor-pointer group/check">
+            <input
+              type="checkbox"
+              name="remember_me"
+              id="remember_me"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 transition-all cursor-pointer"
+            />
+            <span
+              class="text-sm text-gray-700 group-hover/check:text-gray-900 transition-colors select-none"
+              >Se souvenir de moi</span
+            >
+          </label>
+          <a
+            href="{{ url_for('auth.forgot_password') }}"
+            class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors relative group/link"
+          >
+            Mot de passe oublié ?
+            <span
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover/link:w-full transition-all duration-300"
+            ></span>
+          </a>
+        </div>
+
+        <!-- Bouton de connexion avec animation -->
+        <button
+          type="submit"
+          id="loginBtn"
+          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] focus:ring-4 focus:ring-blue-300 relative overflow-hidden group/btn"
         >
-        <div class="relative mt-1">
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            autocomplete="email"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 pl-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="exemple@defitech.tg"
-          />
-          <i class="fas fa-envelope text-gray-400 absolute right-3 top-2.5"></i>
+          <span class="relative z-10 flex items-center justify-center">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            <span id="btnText">Se connecter</span>
+            <i class="fas fa-spinner fa-spin ml-2 hidden" id="btnSpinner"></i>
+          </span>
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
+          ></div>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="relative my-8 animate-fade-in-up animation-delay-2000">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-4 bg-white/80 text-gray-500 font-medium"
+            >Ou se connecter avec</span
+          >
         </div>
       </div>
 
-      <!-- Mot de passe -->
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700"
-          >Mot de passe</label
+      <!-- Social login buttons -->
+      <div
+        class="flex justify-center space-x-4 animate-fade-in-up animation-delay-2500"
+      >
+        <button
+          class="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-blue-600 hover:bg-blue-50 transition-all duration-300 transform hover:scale-110 active:scale-95 group/social"
         >
-        <div class="relative mt-1">
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            autocomplete="current-password"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="••••••••"
-          />
           <i
-            id="togglePassword"
-            class="fas fa-eye text-gray-400 absolute right-3 top-2.5 cursor-pointer"
+            class="fab fa-facebook-f text-blue-600 text-lg group-hover/social:scale-110 transition-transform"
           ></i>
-        </div>
+        </button>
+        <button
+          class="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 transform hover:scale-110 active:scale-95 group/social"
+        >
+          <i
+            class="fab fa-twitter text-blue-400 text-lg group-hover/social:scale-110 transition-transform"
+          ></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-red-500 hover:bg-red-50 transition-all duration-300 transform hover:scale-110 active:scale-95 group/social"
+        >
+          <i
+            class="fab fa-google text-red-500 text-lg group-hover/social:scale-110 transition-transform"
+          ></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-gray-800 hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 active:scale-95 group/social"
+        >
+          <i
+            class="fab fa-apple text-gray-800 text-lg group-hover/social:scale-110 transition-transform"
+          ></i>
+        </button>
       </div>
 
-      <!-- Options -->
-      <div class="flex items-center justify-between">
-        <label class="flex items-center space-x-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            name="remember_me"
-            id="remember_me"
-            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span>Se souvenir de moi</span>
-        </label>
+      <!-- Lien d'inscription -->
+      <div class="text-center mt-8 animate-fade-in-up animation-delay-3000">
+        <span class="text-sm text-gray-600">Vous n'avez pas de compte ? </span>
         <a
-          href="{{ url_for('auth.forgot_password') }}"
-          class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+          href="{{ url_for('auth.register') }}"
+          class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors relative group/signup"
         >
-          Mot de passe oublié ?
+          S'inscrire maintenant
+          <span
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover/signup:scale-x-100 transition-transform duration-300"
+          ></span>
         </a>
       </div>
-
-      <!-- Bouton -->
-      <button
-        type="submit"
-        class="w-full flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2.5 shadow-sm transition-all duration-200 focus:ring-4 focus:ring-blue-300"
-      >
-        Se connecter
-      </button>
-    </form>
-
-    <!-- Séparateur -->
-    <div class="relative flex justify-center items-center my-6">
-      <div class="w-full border-t border-gray-300"></div>
-      <span class="absolute bg-white px-3 text-gray-500 text-sm">ou</span>
-    </div>
-
-    <!-- Lien d'inscription -->
-    <div class="text-center">
-      <a
-        href="{{ url_for('auth.register') }}"
-        id="register"
-        class="inline-block w-full text-center border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
-      >
-        Créer un nouveau compte
-        <i class="fas fa-spiiner fa-spin ml-2" id="spinner"></i>
-      </a>
     </div>
   </div>
 </div>
+
+<!-- Version Mobile Ultra-Moderne -->
+<div
+  class="lg:hidden min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50 flex items-center justify-center p-4 relative overflow-hidden"
+>
+  <!-- Animated background -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div
+      class="absolute top-10 left-10 w-40 h-40 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-2xl animate-blob"
+    ></div>
+    <div
+      class="absolute top-20 right-10 w-40 h-40 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-2xl animate-blob animation-delay-2000"
+    ></div>
+    <div
+      class="absolute -bottom-8 left-1/2 w-40 h-40 bg-cyan-400/20 rounded-full mix-blend-multiply filter blur-2xl animate-blob animation-delay-4000"
+    ></div>
+  </div>
+
+  <div class="w-full max-w-md relative z-10">
+    <!-- Card avec glassmorphism -->
+    <div
+      class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20"
+    >
+      <!-- Section supérieure avec gradient animé -->
+      <div
+        class="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 p-8 pb-24 overflow-hidden"
+      >
+        <!-- Animated overlay -->
+        <div
+          class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer"
+        ></div>
+
+        <!-- Formes décoratives -->
+        <div
+          class="absolute top-5 right-5 w-20 h-20 bg-blue-400/30 rounded-full animate-float"
+        ></div>
+        <div
+          class="absolute top-1/3 left-5 w-32 h-32 bg-white/10 rounded-full animate-float-delayed"
+        ></div>
+        <div
+          class="absolute -bottom-10 right-5 w-40 h-40 bg-blue-700/20 rounded-full animate-pulse-slow"
+        ></div>
+        <div
+          class="absolute -bottom-5 left-10 w-24 h-24 bg-white/20 rounded-full animate-float"
+        ></div>
+
+        <!-- Bouton retour stylisé -->
+        <button
+          onclick="window.history.back()"
+          class="relative z-10 flex items-center space-x-2 text-white mb-8 group/back transition-all duration-300 hover:translate-x-1"
+        >
+          <i
+            class="fas fa-chevron-left transition-transform group-hover/back:-translate-x-1"
+          ></i>
+          <span class="text-sm font-medium">Retour</span>
+        </button>
+
+        <!-- Texte avec animation -->
+        <div class="relative z-10 text-white animate-fade-in-up">
+          <div class="flex items-center space-x-2 mb-4">
+            <div
+              class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg"
+            >
+              <i class="fas fa-graduation-cap text-blue-600"></i>
+            </div>
+            <span class="text-lg font-bold">DEFITECH</span>
+          </div>
+          <h1 class="text-4xl font-bold mb-3 leading-tight">Bon retour !</h1>
+          <p class="text-blue-100 text-sm leading-relaxed">
+            Connectez-vous pour continuer votre apprentissage
+          </p>
+        </div>
+      </div>
+
+      <!-- Section formulaire avec glassmorphism -->
+      <div
+        class="bg-white/90 backdrop-blur-sm -mt-16 rounded-t-3xl relative z-10 p-8"
+      >
+        <div class="text-center mb-8 animate-fade-in-up animation-delay-500">
+          <div
+            class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg"
+          >
+            <i class="fas fa-user text-white text-2xl"></i>
+          </div>
+          <h2
+            class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          >
+            Connexion
+          </h2>
+        </div>
+
+        <form
+          method="POST"
+          action="{{ url_for('auth.login') }}"
+          class="space-y-5 animate-fade-in-up animation-delay-1000"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <!-- Email -->
+          <div class="group">
+            <label
+              for="email_mobile"
+              class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600"
+            >
+              <i class="fas fa-envelope mr-2"></i>E-mail
+            </label>
+            <input
+              type="email"
+              id="email_mobile"
+              name="email"
+              required
+              autocomplete="email"
+              class="w-full rounded-xl border-2 border-gray-200 px-4 py-3.5 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 bg-white/80"
+              placeholder="nom@exemple.com"
+            />
+          </div>
+
+          <!-- Mot de passe -->
+          <div class="group">
+            <label
+              for="password_mobile"
+              class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-blue-600"
+            >
+              <i class="fas fa-lock mr-2"></i>Mot de passe
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="password_mobile"
+                name="password"
+                required
+                autocomplete="current-password"
+                class="w-full rounded-xl border-2 border-gray-200 px-4 py-3.5 pr-12 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 bg-white/80"
+                placeholder="••••••••••••"
+              />
+              <button
+                type="button"
+                id="togglePasswordMobile"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              >
+                <i class="fas fa-eye" id="eyeIconMobile"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me et Forgot password -->
+          <div class="flex items-center justify-between text-sm">
+            <label
+              class="flex items-center space-x-2 cursor-pointer group/check"
+            >
+              <input
+                type="checkbox"
+                name="remember_me"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 transition-all cursor-pointer"
+              />
+              <span
+                class="text-gray-700 group-hover/check:text-gray-900 transition-colors select-none"
+                >Se souvenir</span
+              >
+            </label>
+            <a
+              href="{{ url_for('auth.forgot_password') }}"
+              class="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
+              Mot de passe oublié ?
+            </a>
+          </div>
+
+          <!-- Bouton de connexion -->
+          <button
+            type="submit"
+            id="loginBtnMobile"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] focus:ring-4 focus:ring-blue-300 relative overflow-hidden group/btn mt-6"
+          >
+            <span class="relative z-10 flex items-center justify-center">
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              <span id="btnTextMobile">Se connecter</span>
+              <i
+                class="fas fa-spinner fa-spin ml-2 hidden"
+                id="btnSpinnerMobile"
+              ></i>
+            </span>
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
+            ></div>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6 animate-fade-in-up animation-delay-1500">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-4 bg-white/90 text-gray-500 font-medium"
+              >Ou continuer avec</span
+            >
+          </div>
+        </div>
+
+        <!-- Social login -->
+        <div
+          class="flex justify-center space-x-3 animate-fade-in-up animation-delay-2000"
+        >
+          <button
+            class="w-12 h-12 rounded-xl border-2 border-gray-200 flex items-center justify-center hover:border-blue-600 hover:bg-blue-50 transition-all duration-300 transform hover:scale-110 active:scale-95"
+          >
+            <i class="fab fa-facebook-f text-blue-600"></i>
+          </button>
+          <button
+            class="w-12 h-12 rounded-xl border-2 border-gray-200 flex items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 transform hover:scale-110 active:scale-95"
+          >
+            <i class="fab fa-twitter text-blue-400"></i>
+          </button>
+          <button
+            class="w-12 h-12 rounded-xl border-2 border-gray-200 flex items-center justify-center hover:border-red-500 hover:bg-red-50 transition-all duration-300 transform hover:scale-110 active:scale-95"
+          >
+            <i class="fab fa-google text-red-500"></i>
+          </button>
+          <button
+            class="w-12 h-12 rounded-xl border-2 border-gray-200 flex items-center justify-center hover:border-gray-800 hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 active:scale-95"
+          >
+            <i class="fab fa-apple text-gray-800"></i>
+          </button>
+        </div>
+
+        <!-- Lien d'inscription -->
+        <div class="text-center mt-6 animate-fade-in-up animation-delay-2500">
+          <span class="text-sm text-gray-600">Pas encore de compte ? </span>
+          <a
+            href="{{ url_for('auth.register') }}"
+            class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            S'inscrire
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Animations CSS -->
+<style>
+  @keyframes blob {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    25% {
+      transform: translate(20px, -20px) scale(1.1);
+    }
+    50% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    75% {
+      transform: translate(20px, 20px) scale(1.05);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes ping-slow {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-down {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-down {
+    animation: fade-in-down 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-1500 {
+    animation-delay: 1.5s;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-2500 {
+    animation-delay: 2.5s;
+  }
+
+  .animation-delay-3000 {
+    animation-delay: 3s;
+  }
+
+  /* Smooth scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Input focus glow */
+  input:focus {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+</style>
+
 {% endblock %} {% block extra_js %}
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Gestion du bouton de soumission
-    const form = document.querySelector("form");
-    form.addEventListener("submit", function () {
-      const button = form.querySelector('button[type="submit"]');
-      button.disabled = true;
-      button.innerHTML =
-        'Connexion en cours... <i class="fas fa-spinner fa-spin ml-2"></i>';
+  document.addEventListener("DOMContentLoaded", () => {
+    function togglePassword(toggleId, inputId, iconId) {
+      const toggle = document.getElementById(toggleId);
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+
+      if (!toggle || !input || !icon) return;
+
+      toggle.addEventListener("click", () => {
+        const isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+        icon.classList.toggle("fa-eye", !isPassword);
+        icon.classList.toggle("fa-eye-slash", isPassword);
+      });
+    }
+
+    // Desktop
+    togglePassword("togglePassword", "password", "eyeIcon");
+
+    // Mobile
+    togglePassword("togglePasswordMobile", "passwordMobile", "eyeIconMobile");
+
+    // Gestion du submit (desktop + mobile)
+    document.querySelectorAll("form").forEach((form) => {
+      form.addEventListener("submit", () => {
+        const button = form.querySelector('button[type="submit"]');
+        if (!button) return;
+
+        button.disabled = true;
+        button.innerHTML =
+          'Connexion en cours... <i class="fas fa-spinner fa-spin ml-2"></i>';
+      });
     });
-
-    // Afficher / cacher le mot de passe
-    const togglePassword = document.getElementById("togglePassword");
-    const passwordField = document.getElementById("password");
-    togglePassword.addEventListener("click", function () {
-      const type =
-        passwordField.getAttribute("type") === "password" ? "text" : "password";
-      passwordField.setAttribute("type", type);
-      this.classList.toggle("fa-eye-slash");
-    });
-  });
-
-  const spinner = document.getElementById("spinner");
-  const registerBtn = document.getElementById("register");
-
-  registerBtn.addEventListener("click", () => {
-    spinner.classList.remove("hidden");
   });
 </script>
 {% endblock %}
