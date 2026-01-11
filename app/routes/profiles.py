@@ -294,6 +294,32 @@ def mon_profil():
     )
 
 
+@profile_bp.route("/download-fiche")
+@login_required
+@role_required("etudiant")
+def download_fiche():
+    """Route pour télécharger la fiche d'inscription."""
+    from app.services.pdf_service import PDFService
+    from flask import send_file
+
+    if not hasattr(current_user, "etudiant") or not current_user.etudiant:
+         flash("Profil étudiant incomplet.", "error")
+         return redirect(url_for('profile.mon_profil'))
+
+    try:
+        pdf_buffer = PDFService.generate_registration_form(current_user, current_user.etudiant)
+        return send_file(
+            pdf_buffer,
+            as_attachment=True,
+            download_name="fiche_inscription.pdf",
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        current_app.logger.error(f"Erreur PDF: {e}")
+        flash("Erreur lors de la génération du PDF.", "error")
+        return redirect(url_for('profile.mon_profil'))
+
+
 def _handle_teacher_profile_update_request(form):
     """Gère la création d'une demande de modification pour un enseignant"""
     from app.models import TeacherProfileUpdateRequest
@@ -927,7 +953,7 @@ def profil_avance():
                         for f in formations
                     ],
                     "langues": [
-                        {"id": l.id, "nom": l.nom, "niveau": l.niveau} for l in langues
+                        {"id": l.id, "nom": l.nom, "niveau": l.niveau} for l in langues # noqa
                     ],
                     "projets": [
                         {

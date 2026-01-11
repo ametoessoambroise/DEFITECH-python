@@ -1,950 +1,1125 @@
-{% extends "study_buddy/base.html" %}
-
-{% block title %}{{ document.title }} - Détails - Study Buddy{% endblock %}
-
-{% block extra_css %}
+{% extends "study_buddy/base.html" %} {% block title %}{{ document.title }} -
+Détails - Study Buddy{% endblock %} {% block extra_css %}
 <style>
-    /* Animation de chargement */
-    @keyframes pulse {
-
-        0%,
-        100% {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.5;
-        }
+  /* Animation de chargement */
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
     }
 
-    .animate-pulse {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    50% {
+      opacity: 0.5;
     }
+  }
 
-    /* Styles pour les éléments du résumé */
-    .prose {
-        color: #374151;
-        line-height: 1.625;
-    }
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 
-    .prose h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #111827;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-    }
+  /* Styles pour les éléments du résumé */
+  .prose {
+    color: #374151;
+    line-height: 1.625;
+  }
 
-    .prose h4 {
-        font-size: 1.125rem;
-        font-weight: 500;
-        color: #1f2937;
-        margin-top: 1.25rem;
-        margin-bottom: 0.5rem;
-    }
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
 
-    .prose p {
-        margin-top: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
+  .prose h4 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
 
-    .prose ul {
-        list-style-type: disc;
-        padding-left: 1.5rem;
-        margin-top: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
+  .prose p {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
 
-    .prose li {
-        margin-bottom: 0.25rem;
-    }
+  .prose ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
 
-    /* Style pour les termes clés */
-    .term-badge {
-        transition: all 0.2s ease-in-out;
-    }
+  .prose li {
+    margin-bottom: 0.25rem;
+  }
 
-    .term-badge:hover {
-        background-color: #dbeafe;
-        transform: translateY(-1px);
-    }
+  /* Style pour les termes clés */
+  .term-badge {
+    transition: all 0.2s ease-in-out;
+  }
 
-    /* Style pour les cartes de section */
-    .section-card {
-        transition: box-shadow 0.2s ease-in-out;
-    }
+  .term-badge:hover {
+    background-color: #dbeafe;
+    transform: translateY(-1px);
+  }
 
-    .section-card:hover {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
+  /* Style pour les cartes de section */
+  .section-card {
+    transition: box-shadow 0.2s ease-in-out;
+  }
+
+  .section-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="md:flex md:items-center md:justify-between mb-6">
-    <div class="flex-1 min-w-0">
-        <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
-                {{ document.title }}
-            </h1>
-            <span
-                class="ml-4 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {{ document.type|upper|default('DOCUMENT', true) }}
-            </span>
-        </div>
-        <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
-            <div class="mt-2 flex items-center text-sm text-gray-500">
-                <i class="fas fa-user-edit mr-1.5 h-4 w-4 text-gray-400"></i>
-                {% if is_author %}
-                    Ajouté par vous
-                {% else %}
-                    Ajouté par {{ document.user.prenom }} {{ document.user.nom }}
-                {% endif %}
-            </div>
-            <div class="mt-2 flex items-center text-sm text-gray-500">
-                <i class="far fa-calendar-alt mr-1.5 h-4 w-4 text-gray-400"></i>
-                Créé le {{ document.created_at|datetimeformat('%d/%m/%Y') }}
-            </div>
-            {% if document.subject %}
-            <div class="mt-2 flex items-center text-sm text-gray-500">
-                <i class="fas fa-tag mr-1.5 h-4 w-4 text-gray-400"></i>
-                {{ document.subject }}
-            </div>
-            {% endif %}
-        </div>
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center">
+      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+        {{ document.title }}
+      </h1>
+      <span
+        class="ml-4 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+      >
+        {{ document.type|upper|default('DOCUMENT', true) }}
+      </span>
     </div>
-    <div class="mt-4 flex space-x-3 md:mt-0">
-        <a href="{{ url_for('study_buddy.index') }}"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <i class="fas fa-arrow-left mr-2 -ml-1 h-4 w-4"></i>
-            Retour
-        </a>
-        <a href="{{ url_for('study_buddy.download_document', document_id=document.id) }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <i class="fas fa-download mr-2 -ml-1 h-4 w-4"></i>
-            Télécharger
-        </a>
+    <div
+      class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6"
+    >
+      <div class="mt-2 flex items-center text-sm text-gray-500">
+        <i class="fas fa-user-edit mr-1.5 h-4 w-4 text-gray-400"></i>
+        {% if is_author %} Ajouté par vous {% else %} Ajouté par {{
+        document.user.prenom }} {{ document.user.nom }} {% endif %}
+      </div>
+      <div class="mt-2 flex items-center text-sm text-gray-500">
+        <i class="far fa-calendar-alt mr-1.5 h-4 w-4 text-gray-400"></i>
+        Créé le {{ document.created_at|datetimeformat('%d/%m/%Y') }}
+      </div>
+      {% if document.subject %}
+      <div class="mt-2 flex items-center text-sm text-gray-500">
+        <i class="fas fa-tag mr-1.5 h-4 w-4 text-gray-400"></i>
+        {{ document.subject }}
+      </div>
+      {% endif %}
     </div>
+  </div>
+  <div class="mt-4 flex space-x-3 md:mt-0">
+    <a
+      href="{{ url_for('study_buddy.index') }}"
+      class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+    >
+      <i class="fas fa-arrow-left mr-2 -ml-1 h-4 w-4"></i>
+      Retour
+    </a>
+    <a
+      href="{{ url_for('study_buddy.download_document', document_id=document.id) }}"
+      download="{{ document.file_name }}"
+      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+    >
+      <i class="fas fa-download mr-2 -ml-1 h-4 w-4"></i>
+      Télécharger
+    </a>
+  </div>
 </div>
 
 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <div class="flex justify-between items-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                <i class="fas fa-info-circle mr-2 text-blue-500"></i>
-                Informations du document
-            </h3>
-            <div class="flex space-x-3">
-                <button type="button"
-                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <i class="fas fa-edit mr-2 -ml-0.5 h-4 w-4"></i>
-                    Modifier
-                </button>
-                <button type="button"
-                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                    <i class="fas fa-trash-alt mr-2 -ml-0.5 h-4 w-4"></i>
-                    Supprimer
-                </button>
-            </div>
-        </div>
+  <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+    <div class="flex justify-between items-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+        Informations du document
+      </h3>
+      <div class="flex space-x-3">
+        <button
+          type="button"
+          onclick="editDocument(this)"
+          data-id="{{ document.id }}"
+          data-title="{{ document.title }}"
+          data-description="{{ document.content_metadata.description if document.content_metadata else '' }}"
+          class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <i class="fas fa-edit mr-2 -ml-0.5 h-4 w-4"></i>
+          Modifier
+        </button>
+        <button
+          type="button"
+          onclick="confirmDelete(this)"
+          data-url="{{ url_for('study_buddy.delete_document', document_id=document.id) }}"
+          data-title="{{ document.title }}"
+          class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          <i class="fas fa-trash-alt mr-2 -ml-0.5 h-4 w-4"></i>
+          Supprimer
+        </button>
+      </div>
     </div>
-    <div class="px-4 py-5 sm:p-6">
-        <div class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Titre</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ document.title }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Type de fichier</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ document.file_type|upper }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Taille du fichier</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ (document.file_size / 1024 / 1024)|round(2) }} MB</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Dernière modification</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ document.updated_at|datetimeformat('%d/%m/%Y à %H:%M') }}</dd>
-            </div>
-            {% if document.subject %}
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Matière / Domaine</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ document.subject }}</dd>
-            </div>
-            {% endif %}
-            {% if document.tags %}
-            <div class="sm:col-span-2">
-                <dt class="text-sm font-medium text-gray-500">Mots-clés</dt>
-                <dd class="mt-1 text-sm text-gray-900">
-                    {% for tag in document.tags.split(',') %}
-                    <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
-                        {{ tag|trim }}
-                    </span>
-                    {% endfor %}
-                </dd>
-            </div>
-            {% endif %}
-            {% if document.description %}
-            <div class="sm:col-span-2">
-                <dt class="text-sm font-medium text-gray-500">Description</dt>
-                <dd class="mt-1 text-sm text-gray-900 whitespace-pre-line">{{ document.description }}</dd>
-            </div>
-            {% endif %}
-        </div>
+  </div>
+  <div class="px-4 py-5 sm:p-6">
+    <div class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Titre</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ document.title }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Type de fichier</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ document.file_type|upper }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Taille du fichier</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ (document.file_size / 1024 / 1024)|round(2) }} MB
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Dernière modification</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ document.updated_at|datetimeformat('%d/%m/%Y à %H:%M') }}
+        </dd>
+      </div>
+      {% if document.subject %}
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Matière / Domaine</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ document.subject }}</dd>
+      </div>
+      {% endif %} {% if document.tags %}
+      <div class="sm:col-span-2">
+        <dt class="text-sm font-medium text-gray-500">Mots-clés</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {% for tag in document.tags.split(',') %}
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2"
+          >
+            {{ tag|trim }}
+          </span>
+          {% endfor %}
+        </dd>
+      </div>
+      {% endif %} {% if document.description %}
+      <div class="sm:col-span-2">
+        <dt class="text-sm font-medium text-gray-500">Description</dt>
+        <dd class="mt-1 text-sm text-gray-900 whitespace-pre-line">
+          {{ document.description }}
+        </dd>
+      </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 
 <!-- Navigation par onglets -->
 <div class="mt-8">
-    <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a href="#content"
-                class="tab-link border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-                aria-current="page">
-                <i class="fas fa-file-alt mr-2"></i>
-                <span class="truncate md:text-base">Contenu</span>
-            </a>
-            <a href="#summary"
-                class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-clipboard-list mr-2"></i>
-                <span class="truncate md:text-base">Résumé</span>
-            </a>
-            <a href="#quiz"
-                class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-question-circle mr-2"></i>
-                <span class="text-xs truncate md:text-base">Quiz</span>
-            </a>
-            <a href="#flashcards"
-                class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-layer-group mr-2"></i>
-                <span class="text-xs truncate md:text-base">Flashcards</span>
-            </a>
-            <a href="#analytics"
-                class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-chart-bar mr-2"></i>
-                <span class="text-xs truncate md:text-base">Statistiques</span>
-            </a>
-        </nav>
-    </div>
+  <div class="border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <a
+        href="#content"
+        class="tab-link border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+        aria-current="page"
+      >
+        <i class="fas fa-file-alt mr-2"></i>
+        <span class="truncate md:text-base">Contenu</span>
+      </a>
+      <a
+        href="#summary"
+        class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+      >
+        <i class="fas fa-clipboard-list mr-2"></i>
+        <span class="truncate md:text-base">Résumé</span>
+      </a>
+      <a
+        href="#quiz"
+        class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+      >
+        <i class="fas fa-question-circle mr-2"></i>
+        <span class="text-xs truncate md:text-base">Quiz</span>
+      </a>
+      <a
+        href="#flashcards"
+        class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+      >
+        <i class="fas fa-layer-group mr-2"></i>
+        <span class="text-xs truncate md:text-base">Flashcards</span>
+      </a>
+      <a
+        href="#analytics"
+        class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+      >
+        <i class="fas fa-chart-bar mr-2"></i>
+        <span class="text-xs truncate md:text-base">Statistiques</span>
+      </a>
+    </nav>
+  </div>
 </div>
 
 <!-- Contenu des onglets -->
 <div class="mt-6">
-    <!-- Onglet Contenu -->
-    <div id="content-tab" class="tab-content">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-file-alt mr-2 text-blue-500"></i>
-                    Contenu du document
-                </h3>
+  <!-- Onglet Contenu -->
+  <div id="content-tab" class="tab-content">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          <i class="fas fa-file-alt mr-2 text-blue-500"></i>
+          Contenu du document
+        </h3>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        {% if document.content %}
+        <div class="prose max-w-none">{{ document.content|safe }}</div>
+        {% else %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg">
+          <i
+            class="mx-auto h-12 w-12 text-gray-400 fas fa-file-alt text-3xl"
+          ></i>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            Aucun contenu à afficher
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Le contenu de ce document n'a pas pu être extrait.
+          </p>
+          <div class="mt-6">
+            <a
+              href="{{ url_for('study_buddy.download_document', document_id=document.id) }}"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-download mr-2 -ml-1 h-5 w-5"></i>
+              Télécharger le document original
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Résumé -->
+  <div id="summary-tab" class="tab-content hidden">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>
+            Résumé généré
+          </h3>
+          <button
+            type="button"
+            id="generate-summary-btn"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <i class="fas fa-sync-alt mr-1.5 -ml-0.5 h-3 w-3"></i>
+            Régénérer
+          </button>
+        </div>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        <div id="summary-loading" class="hidden text-center py-8">
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"
+          ></div>
+          <p class="mt-3 text-sm text-gray-500">
+            Génération du résumé en cours...
+          </p>
+        </div>
+        <div id="summary-content" class="prose max-w-none">
+          {% if document.summary %} {{ document.summary|safe }} {% else %}
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i
+              class="mx-auto h-12 w-12 text-gray-400 fas fa-file-contract text-3xl"
+            ></i>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">
+              Aucun résumé disponible
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Générez un résumé automatique à partir du contenu du document.
+            </p>
+            <div class="mt-6">
+              <button
+                type="button"
+                id="generate-summary-initial"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <i class="fas fa-magic mr-2 -ml-1 h-5 w-5"></i>
+                Générer un résumé
+              </button>
             </div>
-            <div class="px-4 py-5 sm:p-6">
-                {% if document.content %}
-                <div class="prose max-w-none">
-                    {{ document.content|safe }}
-                </div>
-                {% else %}
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <i class="mx-auto h-12 w-12 text-gray-400 fas fa-file-alt text-3xl"></i>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun contenu à afficher</h3>
-                    <p class="mt-1 text-sm text-gray-500">Le contenu de ce document n'a pas pu être extrait.</p>
-                    <div class="mt-6">
-                        <a href="{{ url_for('study_buddy.download_document', document_id=document.id) }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-download mr-2 -ml-1 h-5 w-5"></i>
-                            Télécharger le document original
-                        </a>
-                    </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Quiz -->
+  <div id="quiz-tab" class="tab-content hidden">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            <i class="fas fa-question-circle mr-2 text-blue-500"></i>
+            Quiz générés
+          </h3>
+          <div class="flex space-x-3">
+            <a
+              href="{{ url_for('study_buddy.generate_quiz', document_id=document.id) }}"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-plus mr-1.5 -ml-0.5 h-3 w-3"></i>
+              Nouveau quiz
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        {% if quizzes %}
+        <div class="space-y-4">
+          {% for quiz in quizzes %}
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="text-md font-medium text-gray-900">
+                  {{ quiz.title }}
+                </h4>
+                <p class="text-sm text-gray-500 mt-1">
+                  {{ quiz.questions|length }} questions • Créé le {{
+                  quiz.created_at|datetimeformat('%d/%m/%Y') }}
+                </p>
+                {% if quiz.last_attempt %}
+                <div class="mt-2">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if quiz.last_attempt.score_percentage >= 70 %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}"
+                  >
+                    Dernier essai : {{ quiz.last_attempt.score_percentage }}%
+                  </span>
+                  <span class="text-xs text-gray-500 ml-2">
+                    {{ quiz.last_attempt.completed_at|datetimeformat('le
+                    %d/%m/%Y à %H:%M') }}
+                  </span>
                 </div>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Onglet Résumé -->
-    <div id="summary-tab" class="tab-content hidden">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>
-                        Résumé généré
-                    </h3>
-                    <button type="button" id="generate-summary-btn"
-                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fas fa-sync-alt mr-1.5 -ml-0.5 h-3 w-3"></i>
-                        Régénérer
-                    </button>
-                </div>
-            </div>
-            <div class="px-4 py-5 sm:p-6">
-                <div id="summary-loading" class="hidden text-center py-8">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p class="mt-3 text-sm text-gray-500">Génération du résumé en cours...</p>
-                </div>
-                <div id="summary-content" class="prose max-w-none">
-                    {% if document.summary %}
-                    {{ document.summary|safe }}
-                    {% else %}
-                    <div class="text-center py-12 bg-gray-50 rounded-lg">
-                        <i class="mx-auto h-12 w-12 text-gray-400 fas fa-file-contract text-3xl"></i>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun résumé disponible</h3>
-                        <p class="mt-1 text-sm text-gray-500">Générez un résumé automatique à partir du contenu du
-                            document.</p>
-                        <div class="mt-6">
-                            <button type="button" id="generate-summary-initial"
-                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <i class="fas fa-magic mr-2 -ml-1 h-5 w-5"></i>
-                                Générer un résumé
-                            </button>
-                        </div>
+              </div>
+              <div class="flex space-x-2">
+                <a
+                  href="{{ url_for('study_buddy.take_quiz', quiz_id=quiz.id) }}"
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <i class="fas fa-play mr-1.5 -ml-0.5 h-3 w-3"></i>
+                  Commencer
+                </a>
+                <div class="relative inline-block text-left">
+                  <button
+                    type="button"
+                    class="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    id="quiz-options-{{ quiz.id }}-button"
+                    aria-expanded="true"
+                    aria-haspopup="true"
+                    onclick="toggleDropdown('quiz-options-{{ quiz.id }}')"
+                  >
+                    <span class="sr-only">Options</span>
+                    <i class="fas fa-ellipsis-v h-4 w-4"></i>
+                  </button>
+                  <div
+                    id="quiz-options-{{ quiz.id }}"
+                    class="hidden origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                    role="menu"
+                    aria-orientation="vertical"
+                    tabindex="-1"
+                  >
+                    <div class="py-1" role="none">
+                      {% if quiz.attempts|selectattr('is_completed')|list %} {%
+                      set latest_attempt =
+                      quiz.attempts|selectattr('is_completed')|first %}
+                      <a
+                        href="{{ url_for('study_buddy.quiz_results', attempt_id=latest_attempt.id) }}"
+                        class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                        role="menuitem"
+                        tabindex="-1"
+                      >
+                        <i class="fas fa-chart-bar mr-2 text-gray-400"></i>
+                        Voir les résultats
+                      </a>
+                      {% else %}
+                      <span
+                        class="text-gray-400 block px-4 py-2 text-sm cursor-not-allowed"
+                        title="Aucune tentative terminée"
+                      >
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Voir les résultats
+                      </span>
+                      {% endif %}
+                      <a
+                        href="#"
+                        class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                        role="menuitem"
+                        tabindex="-1"
+                      >
+                        <i class="fas fa-edit mr-2 text-gray-400"></i>
+                        Modifier
+                      </a>
+                      <a
+                        href="#"
+                        class="text-red-600 block px-4 py-2 text-sm hover:bg-gray-100"
+                        role="menuitem"
+                        tabindex="-1"
+                      >
+                        <i class="fas fa-trash-alt mr-2 text-red-400"></i>
+                        Supprimer
+                      </a>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg">
+          <i
+            class="mx-auto h-12 w-12 text-gray-400 fas fa-question-circle text-3xl"
+          ></i>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            Aucun quiz disponible
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Créez votre premier quiz à partir de ce document.
+          </p>
+          <div class="mt-6">
+            <a
+              href="{{ url_for('study_buddy.generate_quiz', document_id=document.id) }}"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-plus mr-2 -ml-1 h-5 w-5"></i>
+              Créer un quiz
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Flashcards -->
+  <div id="flashcards-tab" class="tab-content hidden">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            <i class="fas fa-layer-group mr-2 text-blue-500"></i>
+            Cartes mémoires
+          </h3>
+          <div class="flex space-x-3">
+            <a
+              href="{{ url_for('study_buddy.create_flashcard', document_id=document.id) }}"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-plus mr-1.5 -ml-0.5 h-3 w-3"></i>
+              Nouvelle carte
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        {% if flashcards %}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {% for flashcard in flashcards %}
+          <div
+            class="relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200"
+          >
+            <div class="p-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="text-sm font-medium text-gray-900">
+                    {{ flashcard.title|default("Sans titre", true) }}
+                  </h4>
+                  <p class="mt-1 text-xs text-gray-500">
+                    Créée le {{ flashcard.created_at|datetimeformat('%d/%m/%Y')
+                    }}
+                  </p>
+                  {% if flashcard.tags %}
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {% for tag in flashcard.tags.split(',') %}
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {{ tag|trim }}
+                    </span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="flex items-center">
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {% if flashcard.status == 'new' %}bg-gray-100 text-gray-800{% elif flashcard.status == 'learning' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}"
+                  >
+                    {% if flashcard.status == 'new' %}Nouvelle{% elif
+                    flashcard.status == 'learning' %}En apprentissage{% else
+                    %}Maîtrisée{% endif %}
+                  </span>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-gray-600 line-clamp-3">
+                {{ flashcard.front|striptags|truncate(120) }}
+              </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 flex justify-between items-center">
+              <div class="flex space-x-2">
+                <span class="text-xs text-gray-500">
+                  <i class="fas fa-sync-alt mr-1"></i>
+                  Révision dans {{ flashcard.days_until_review }} j
+                </span>
+                <span class="text-xs text-gray-500">
+                  <i class="fas fa-star mr-1 text-yellow-400"></i>
+                  {{ "%.1f"|format(flashcard.ease_factor) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg">
+          <i
+            class="mx-auto h-12 w-12 text-gray-400 fas fa-layer-group text-3xl"
+          ></i>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            Aucune carte mémoire
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Créez votre première carte mémoire à partir de ce document.
+          </p>
+          <div class="mt-6">
+            <a
+              href="{{ url_for('study_buddy.create_flashcard', document_id=document.id) }}"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-plus mr-2 -ml-1 h-5 w-5"></i>
+              Créer une carte mémoire
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Statistiques -->
+  <div id="analytics-tab" class="tab-content hidden">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          <i class="fas fa-chart-bar mr-2 text-blue-500"></i>
+          Statistiques du document
+        </h3>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Temps d'étude -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                  <i class="text-white fas fa-clock text-xl"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Temps d'étude total
+                    </dt>
+                    <dd>
+                      <div class="text-lg font-medium text-gray-900">
+                        {% set total_seconds =
+                        document.sessions|sum(attribute='duration_seconds') %}
+                        {{ (total_seconds // 3600) }}h{{
+                        "%02d"|format((total_seconds % 3600) // 60) }}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sessions d'étude -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                  <i class="text-white fas fa-calendar-alt text-xl"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Sessions d'étude
+                    </dt>
+                    <dd>
+                      <div class="text-lg font-medium text-gray-900">
+                        {{ document.study_sessions|length }}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dernière révision -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                  <i class="text-white fas fa-history text-xl"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      Dernière révision
+                    </dt>
+                    <dd>
+                      <div class="text-lg font-medium text-gray-900">
+                        {% if document.last_studied %} {{
+                        document.last_studied|datetimeformat('%d/%m/%Y') }} {%
+                        else %} Jamais {% endif %}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graphique d'activité -->
+        <div class="mt-8">
+          <h4 class="text-md font-medium text-gray-900 mb-4">
+            Activité récente
+          </h4>
+          <div
+            class="bg-gray-50 p-4 rounded-lg h-64 flex items-center justify-center"
+          >
+            <p class="text-gray-500">Graphique d'activité à venir</p>
+          </div>
+        </div>
+
+        <!-- Dernières sessions -->
+        <div class="mt-8">
+          <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+              <h4 class="text-md font-medium text-gray-900">
+                Dernières sessions d'étude
+              </h4>
+              <p class="mt-1 text-sm text-gray-500">
+                Vos sessions d'étude les plus récentes pour ce document.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4">
+            {% if document.study_sessions %}
+            <div class="flow-root">
+              <ul class="-mb-8">
+                {% set sorted_sessions =
+                document.study_sessions|sort(attribute='started_at',
+                reverse=true) %} {% for session in sorted_sessions[:5] %}
+                <li>
+                  <div class="relative pb-8">
+                    {% if not loop.last %}
+                    <span
+                      class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                      aria-hidden="true"
+                    ></span>
                     {% endif %}
-                </div>
+                    <div class="relative flex space-x-3">
+                      <div>
+                        <span
+                          class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white"
+                        >
+                          {% if session.session_type == 'study' %}
+                          <i class="fas fa-book text-white text-sm"></i>
+                          {% elif session.session_type == 'quiz' %}
+                          <i class="fas fa-question text-white text-sm"></i>
+                          {% else %}
+                          <i class="fas fa-layer-group text-white text-sm"></i>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div
+                        class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5"
+                      >
+                        <div>
+                          <p class="text-sm text-gray-500">
+                            {% if session.session_type == 'study' %} Étude du
+                            document {% elif session.session_type == 'quiz' %}
+                            Quiz "{{ session.quiz.title if session.quiz else
+                            'Sans titre' }}" {% else %} Révision de flashcards
+                            {% endif %}
+                            <span class="font-medium text-gray-900"
+                              >({{ session.duration }} min)</span
+                            >
+                          </p>
+                        </div>
+                        <div
+                          class="whitespace-nowrap text-right text-sm text-gray-500"
+                        >
+                          {{ session.started_at|datetimeformat('%d %b %H:%M') }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
             </div>
+            <div class="mt-6">
+              <a
+                href="#"
+                class="text-sm font-medium text-blue-600 hover:text-blue-500"
+              >
+                Voir toutes les sessions
+                <span aria-hidden="true"> &rarr;</span>
+              </a>
+            </div>
+            {% else %}
+            <div class="text-center py-12 bg-gray-50 rounded-lg">
+              <i
+                class="mx-auto h-12 w-12 text-gray-400 fas fa-calendar-alt text-3xl"
+              ></i>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">
+                Aucune session d'étude
+              </h3>
+              <p class="mt-1 text-sm text-gray-500">
+                Commencez à étudier ce document pour voir vos statistiques.
+              </p>
+            </div>
+            {% endif %}
+          </div>
         </div>
+      </div>
     </div>
-
-    <!-- Onglet Quiz -->
-    <div id="quiz-tab" class="tab-content hidden">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        <i class="fas fa-question-circle mr-2 text-blue-500"></i>
-                        Quiz générés
-                    </h3>
-                    <div class="flex space-x-3">
-                        <a href="{{ url_for('study_buddy.generate_quiz', document_id=document.id) }}"
-                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-plus mr-1.5 -ml-0.5 h-3 w-3"></i>
-                            Nouveau quiz
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="px-4 py-5 sm:p-6">
-                {% if quizzes %}
-                <div class="space-y-4">
-                    {% for quiz in quizzes %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-md font-medium text-gray-900">{{ quiz.title }}</h4>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    {{ quiz.questions|length }} questions • Créé le {{
-                                    quiz.created_at|datetimeformat('%d/%m/%Y') }}
-                                </p>
-                                {% if quiz.last_attempt %}
-                                <div class="mt-2">
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if quiz.last_attempt.score_percentage >= 70 %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                        Dernier essai : {{ quiz.last_attempt.score_percentage }}%
-                                    </span>
-                                    <span class="text-xs text-gray-500 ml-2">
-                                        {{ quiz.last_attempt.completed_at|datetimeformat('le %d/%m/%Y à %H:%M') }}
-                                    </span>
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="flex space-x-2">
-                                <a href="{{ url_for('study_buddy.take_quiz', quiz_id=quiz.id) }}"
-                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    <i class="fas fa-play mr-1.5 -ml-0.5 h-3 w-3"></i>
-                                    Commencer
-                                </a>
-                                <div class="relative inline-block text-left">
-                                    <button type="button"
-                                        class="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                        id="quiz-options-{{ quiz.id }}-button" aria-expanded="true" aria-haspopup="true"
-                                        onclick="toggleDropdown('quiz-options-{{ quiz.id }}')">
-                                        <span class="sr-only">Options</span>
-                                        <i class="fas fa-ellipsis-v h-4 w-4"></i>
-                                    </button>
-                                    <div id="quiz-options-{{ quiz.id }}"
-                                        class="hidden origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
-                                        role="menu" aria-orientation="vertical" tabindex="-1">
-                                        <div class="py-1" role="none">
-                                            {% if quiz.attempts|selectattr('is_completed')|list %}
-                                            {% set latest_attempt = quiz.attempts|selectattr('is_completed')|first %}
-                                            <a href="{{ url_for('study_buddy.quiz_results', attempt_id=latest_attempt.id) }}"
-                                                class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                                                role="menuitem" tabindex="-1">
-                                                <i class="fas fa-chart-bar mr-2 text-gray-400"></i>
-                                                Voir les résultats
-                                            </a>
-                                            {% else %}
-                                            <span class="text-gray-400 block px-4 py-2 text-sm cursor-not-allowed"
-                                                title="Aucune tentative terminée">
-                                                <i class="fas fa-chart-bar mr-2"></i>
-                                                Voir les résultats
-                                            </span>
-                                            {% endif %}
-                                            <a href="#" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
-                                                role="menuitem" tabindex="-1">
-                                                <i class="fas fa-edit mr-2 text-gray-400"></i>
-                                                Modifier
-                                            </a>
-                                            <a href="#" class="text-red-600 block px-4 py-2 text-sm hover:bg-gray-100"
-                                                role="menuitem" tabindex="-1">
-                                                <i class="fas fa-trash-alt mr-2 text-red-400"></i>
-                                                Supprimer
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <i class="mx-auto h-12 w-12 text-gray-400 fas fa-question-circle text-3xl"></i>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun quiz disponible</h3>
-                    <p class="mt-1 text-sm text-gray-500">Créez votre premier quiz à partir de ce document.</p>
-                    <div class="mt-6">
-                        <a href="{{ url_for('study_buddy.generate_quiz', document_id=document.id) }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-plus mr-2 -ml-1 h-5 w-5"></i>
-                            Créer un quiz
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Onglet Flashcards -->
-    <div id="flashcards-tab" class="tab-content hidden">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        <i class="fas fa-layer-group mr-2 text-blue-500"></i>
-                        Cartes mémoires
-                    </h3>
-                    <div class="flex space-x-3">
-                        <a href="{{ url_for('study_buddy.create_flashcard', document_id=document.id) }}"
-                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-plus mr-1.5 -ml-0.5 h-3 w-3"></i>
-                            Nouvelle carte
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="px-4 py-5 sm:p-6">
-                {% if flashcards %}
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {% for flashcard in flashcards %}
-                    <div
-                        class="relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
-                        <div class="p-4">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-900">{{ flashcard.title|default("Sans
-                                        titre", true) }}</h4>
-                                    <p class="mt-1 text-xs text-gray-500">
-                                        Créée le {{ flashcard.created_at|datetimeformat('%d/%m/%Y') }}
-                                    </p>
-                                    {% if flashcard.tags %}
-                                    <div class="mt-2 flex flex-wrap gap-1">
-                                        {% for tag in flashcard.tags.split(',') %}
-                                        <span
-                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ tag|trim }}
-                                        </span>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                <div class="flex items-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {% if flashcard.status == 'new' %}bg-gray-100 text-gray-800{% elif flashcard.status == 'learning' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
-                                        {% if flashcard.status == 'new' %}Nouvelle{% elif flashcard.status == 'learning'
-                                        %}En apprentissage{% else %}Maîtrisée{% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-sm text-gray-600 line-clamp-3">
-                                {{ flashcard.front|striptags|truncate(120) }}
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 px-4 py-3 flex justify-between items-center">
-                            <div class="flex space-x-2">
-                                <span class="text-xs text-gray-500">
-                                    <i class="fas fa-sync-alt mr-1"></i>
-                                    Révision dans {{ flashcard.days_until_review }} j
-                                </span>
-                                <span class="text-xs text-gray-500">
-                                    <i class="fas fa-star mr-1 text-yellow-400"></i>
-                                    {{ "%.1f"|format(flashcard.ease_factor) }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <i class="mx-auto h-12 w-12 text-gray-400 fas fa-layer-group text-3xl"></i>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune carte mémoire</h3>
-                    <p class="mt-1 text-sm text-gray-500">Créez votre première carte mémoire à partir de ce document.
-                    </p>
-                    <div class="mt-6">
-                        <a href="{{ url_for('study_buddy.create_flashcard', document_id=document.id) }}"
-                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-plus mr-2 -ml-1 h-5 w-5"></i>
-                            Créer une carte mémoire
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Onglet Statistiques -->
-    <div id="analytics-tab" class="tab-content hidden">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-chart-bar mr-2 text-blue-500"></i>
-                    Statistiques du document
-                </h3>
-            </div>
-            <div class="px-4 py-5 sm:p-6">
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    <!-- Temps d'étude -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="px-4 py-5 sm:p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                                    <i class="text-white fas fa-clock text-xl"></i>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Temps d'étude total</dt>
-                                        <dd>
-                                            <div class="text-lg font-medium text-gray-900"> {% set total_seconds =
-                                                document.sessions|sum(attribute='duration_seconds') %} {{
-                                                (total_seconds // 3600) }}h{{ "%02d"|format((total_seconds % 3600) //
-                                                60) }} </div>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sessions d'étude -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="px-4 py-5 sm:p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                                    <i class="text-white fas fa-calendar-alt text-xl"></i>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Sessions d'étude</dt>
-                                        <dd>
-                                            <div class="text-lg font-medium text-gray-900">
-                                                {{ document.study_sessions|length }}
-                                            </div>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Dernière révision -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="px-4 py-5 sm:p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                                    <i class="text-white fas fa-history text-xl"></i>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Dernière révision</dt>
-                                        <dd>
-                                            <div class="text-lg font-medium text-gray-900">
-                                                {% if document.last_studied %}
-                                                {{ document.last_studied|datetimeformat('%d/%m/%Y') }}
-                                                {% else %}
-                                                Jamais
-                                                {% endif %}
-                                            </div>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Graphique d'activité -->
-                <div class="mt-8">
-                    <h4 class="text-md font-medium text-gray-900 mb-4">Activité récente</h4>
-                    <div class="bg-gray-50 p-4 rounded-lg h-64 flex items-center justify-center">
-                        <p class="text-gray-500">Graphique d'activité à venir</p>
-                    </div>
-                </div>
-
-                <!-- Dernières sessions -->
-                <div class="mt-8">
-                    <div class="sm:flex sm:items-center">
-                        <div class="sm:flex-auto">
-                            <h4 class="text-md font-medium text-gray-900">Dernières sessions d'étude</h4>
-                            <p class="mt-1 text-sm text-gray-500">Vos sessions d'étude les plus récentes pour ce
-                                document.</p>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        {% if document.study_sessions %}
-                        <div class="flow-root">
-                            <ul class="-mb-8">
-                                {% set sorted_sessions = document.study_sessions|sort(attribute='started_at',
-                                reverse=true) %}
-                                {% for session in sorted_sessions[:5] %}
-                                <li>
-                                    <div class="relative pb-8">
-                                        {% if not loop.last %}
-                                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        {% endif %}
-                                        <div class="relative flex space-x-3">
-                                            <div>
-                                                <span
-                                                    class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                                                    {% if session.session_type == 'study' %}
-                                                    <i class="fas fa-book text-white text-sm"></i>
-                                                    {% elif session.session_type == 'quiz' %}
-                                                    <i class="fas fa-question text-white text-sm"></i>
-                                                    {% else %}
-                                                    <i class="fas fa-layer-group text-white text-sm"></i>
-                                                    {% endif %}
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">
-                                                        {% if session.session_type == 'study' %}
-                                                        Étude du document
-                                                        {% elif session.session_type == 'quiz' %}
-                                                        Quiz "{{ session.quiz.title if session.quiz else 'Sans titre'
-                                                        }}"
-                                                        {% else %}
-                                                        Révision de flashcards
-                                                        {% endif %}
-                                                        <span class="font-medium text-gray-900">({{ session.duration }}
-                                                            min)</span>
-                                                    </p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    {{ session.started_at|datetimeformat('%d %b %H:%M') }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        <div class="mt-6">
-                            <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                                Voir toutes les sessions
-                                <span aria-hidden="true"> &rarr;</span>
-                            </a>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-12 bg-gray-50 rounded-lg">
-                            <i class="mx-auto h-12 w-12 text-gray-400 fas fa-calendar-alt text-3xl"></i>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune session d'étude</h3>
-                            <p class="mt-1 text-sm text-gray-500">Commencez à étudier ce document pour voir vos
-                                statistiques.</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <!-- Modal de confirmation de suppression -->
-<div id="delete-modal" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-    aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+<div
+  id="delete-modal"
+  class="hidden fixed z-10 inset-0 overflow-y-auto"
+  aria-labelledby="modal-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <div
+    class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+      aria-hidden="true"
+    ></div>
+    <span
+      class="hidden sm:inline-block sm:align-middle sm:h-screen"
+      aria-hidden="true"
+      >&#8203;</span
+    >
+    <div
+      class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+    >
+      <div class="sm:flex sm:items-start">
         <div
-            class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-            <div class="sm:flex sm:items-start">
-                <div
-                    class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <i class="fas fa-exclamation text-red-600"></i>
-                </div>
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Confirmer la suppression
-                    </h3>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-500">
-                            Êtes-vous sûr de vouloir supprimer <span id="item-to-delete"></span> ? Cette action est
-                            irréversible.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <a id="confirm-delete-btn" href="#"
-                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                    Supprimer
-                </a>
-                <button type="button" onclick="closeModal()"
-                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm">
-                    Annuler
-                </button>
-            </div>
+          class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+        >
+          <i class="fas fa-exclamation text-red-600"></i>
         </div>
+        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+          <h3
+            class="text-lg leading-6 font-medium text-gray-900"
+            id="modal-title"
+          >
+            Confirmer la suppression
+          </h3>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500">
+              Êtes-vous sûr de vouloir supprimer
+              <span id="item-to-delete"></span> ? Cette action est irréversible.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+        <form id="delete-form" action="" method="POST" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button
+            type="submit"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Supprimer
+          </button>
+        </form>
+        <button
+          type="button"
+          onclick="closeModal()"
+          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Annuler
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-    // Gestion des onglets
-    document.addEventListener('DOMContentLoaded', function () {
-        // Gestion du chargement initial de l'onglet
-        const hash = window.location.hash.substring(1) || 'content';
-        showTab(hash);
+  // Gestion des onglets
+  document.addEventListener("DOMContentLoaded", function () {
+    // Gestion du chargement initial de l'onglet
+    const hash = window.location.hash.substring(1) || "content";
+    showTab(hash);
 
-        // Gestion des clics sur les onglets
-        document.querySelectorAll('.tab-link').forEach(tab => {
-            tab.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = this.getAttribute('href').substring(1);
-                showTab(target);
-                // Mettre à jour l'URL sans recharger la page
-                history.pushState(null, null, '#' + target);
-            });
-        });
-
-        // Gestion du bouton de génération de résumé
-        const generateSummaryBtn = document.getElementById('generate-summary-btn');
-        if (generateSummaryBtn) {
-            generateSummaryBtn.addEventListener('click', function () {
-                generateSummary();
-            });
-        }
-
-        const generateSummaryInitial = document.getElementById('generate-summary-initial');
-        if (generateSummaryInitial) {
-            generateSummaryInitial.addEventListener('click', function () {
-                generateSummary();
-            });
-        }
-
-        // Gestion du retour en arrière dans l'historique
-        window.addEventListener('popstate', function (e) {
-            const hash = window.location.hash.substring(1) || 'content';
-            showTab(hash);
-        });
+    // Gestion des clics sur les onglets
+    document.querySelectorAll(".tab-link").forEach((tab) => {
+      tab.addEventListener("click", function (e) {
+        e.preventDefault();
+        const target = this.getAttribute("href").substring(1);
+        showTab(target);
+        // Mettre à jour l'URL sans recharger la page
+        history.pushState(null, null, "#" + target);
+      });
     });
 
-    function showTab(tabName) {
-        // Masquer tous les contenus d'onglets
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.add('hidden');
-        });
-
-        // Désactiver tous les onglets
-        document.querySelectorAll('.tab-link').forEach(tab => {
-            tab.classList.remove('border-blue-500', 'text-blue-600');
-            tab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-        });
-
-        // Afficher l'onglet sélectionné
-        const selectedTab = document.getElementById(tabName + '-tab');
-        if (selectedTab) {
-            selectedTab.classList.remove('hidden');
-        }
-
-        // Activer le lien d'onglet sélectionné
-        const tabLink = document.querySelector(`.tab-link[href="#${tabName}"]`);
-        if (tabLink) {
-            tabLink.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-            tabLink.classList.add('border-blue-500', 'text-blue-600');
-        }
+    // Gestion du bouton de génération de résumé
+    const generateSummaryBtn = document.getElementById("generate-summary-btn");
+    if (generateSummaryBtn) {
+      generateSummaryBtn.addEventListener("click", function () {
+        generateSummary();
+      });
     }
 
-    function generateSummary() {
-        const summaryContent = document.getElementById('summary-content');
-        const loadingIndicator = document.getElementById('summary-loading');
-        const documentId = '{{ document.id }}';
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const generateSummaryInitial = document.getElementById(
+      "generate-summary-initial"
+    );
+    if (generateSummaryInitial) {
+      generateSummaryInitial.addEventListener("click", function () {
+        generateSummary();
+      });
+    }
 
-        // Afficher l'indicateur de chargement
-        summaryContent.classList.add('hidden');
-        loadingIndicator.classList.remove('hidden');
+    // Gestion du retour en arrière dans l'historique
+    window.addEventListener("popstate", function (e) {
+      const hash = window.location.hash.substring(1) || "content";
+      showTab(hash);
+    });
+  });
 
-        // Récupérer le niveau de détail sélectionné
-        const level = 'intermediate';
+  function showTab(tabName) {
+    // Masquer tous les contenus d'onglets
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+      tab.classList.add("hidden");
+    });
 
-        // Envoyer la requête à l'API
-        fetch(`/study-buddy/documents/${documentId}/summarize`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ level: level })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Si la réponse est une chaîne, essayer de la parser comme JSON
-                if (typeof data === 'string') {
-                    try {
-                        // Essayer d'extraire le JSON de la réponse
-                        const jsonMatch = data.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) {
-                            data = JSON.parse(jsonMatch[0]);
-                        }
-                    } catch (e) {
-                        console.error('Erreur de parsing JSON:', e);
-                        throw new Error('Format de réponse invalide du serveur');
-                    }
-                }
+    // Désactiver tous les onglets
+    document.querySelectorAll(".tab-link").forEach((tab) => {
+      tab.classList.remove("border-blue-500", "text-blue-600");
+      tab.classList.add(
+        "border-transparent",
+        "text-gray-500",
+        "hover:text-gray-700",
+        "hover:border-gray-300"
+      );
+    });
 
-                // Masquer l'indicateur de chargement
-                loadingIndicator.classList.add('hidden');
+    // Afficher l'onglet sélectionné
+    const selectedTab = document.getElementById(tabName + "-tab");
+    if (selectedTab) {
+      selectedTab.classList.remove("hidden");
+    }
 
-                // Afficher le résumé généré
-                let summaryHtml = `
+    // Activer le lien d'onglet sélectionné
+    const tabLink = document.querySelector(`.tab-link[href="#${tabName}"]`);
+    if (tabLink) {
+      tabLink.classList.remove(
+        "border-transparent",
+        "text-gray-500",
+        "hover:text-gray-700",
+        "hover:border-gray-300"
+      );
+      tabLink.classList.add("border-blue-500", "text-blue-600");
+    }
+  }
+
+  function generateSummary() {
+    const summaryContent = document.getElementById("summary-content");
+    const loadingIndicator = document.getElementById("summary-loading");
+    const documentId = "{{ document.id }}";
+    const csrfToken = document
+      .querySelector('meta[name="csrf-token"]')
+      .getAttribute("content");
+
+    // Afficher l'indicateur de chargement
+    summaryContent.classList.add("hidden");
+    loadingIndicator.classList.remove("hidden");
+
+    // Récupérer le niveau de détail sélectionné
+    const level = "intermediate";
+
+    // Envoyer la requête à l'API
+    fetch(`/study-buddy/documents/${documentId}/summarize`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({ level: level }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((err) => {
+            throw err;
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Si la réponse est une chaîne, essayer de la parser comme JSON
+        if (typeof data === "string") {
+          try {
+            // Essayer d'extraire le JSON de la réponse
+            const jsonMatch = data.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              data = JSON.parse(jsonMatch[0]);
+            }
+          } catch (e) {
+            console.error("Erreur de parsing JSON:", e);
+            throw new Error("Format de réponse invalide du serveur");
+          }
+        }
+
+        // Masquer l'indicateur de chargement
+        loadingIndicator.classList.add("hidden");
+
+        // Afficher le résumé généré
+        let summaryHtml = `
             <div class="space-y-6">
                 <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900">
-                            ${data.title || 'Résumé du document'}
+                            ${data.title || "Résumé du document"}
                         </h3>
                         <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                            ${data.overview || 'Résumé généré automatiquement.'}
+                            ${data.overview || "Résumé généré automatiquement."}
                         </p>
                     </div>
                     <div class="border-t border-gray-200 px-4 py-5 sm:p-6">`;
 
-                // Ajouter les points clés s'ils existent
-                if (data.key_points && data.key_points.length > 0) {
-                    summaryHtml += `
+        // Ajouter les points clés s'ils existent
+        if (data.key_points && data.key_points.length > 0) {
+          summaryHtml += `
                 <div class="mb-6">
                     <h4 class="text-md font-medium text-gray-900 mb-3">Points clés :</h4>
                     <ul class="list-disc pl-5 space-y-2">`;
 
-                    data.key_points.forEach(point => {
-                        summaryHtml += `<li class="text-sm text-gray-700">${point}</li>`;
-                    });
+          data.key_points.forEach((point) => {
+            summaryHtml += `<li class="text-sm text-gray-700">${point}</li>`;
+          });
 
-                    summaryHtml += `
+          summaryHtml += `
                     </ul>
                 </div>`;
-                }
+        }
 
-                // Ajouter le résumé détaillé s'il existe
-                if (data.detailed_summary) {
-                    if (typeof data.detailed_summary === 'string') {
-                        summaryHtml += `
+        // Ajouter le résumé détaillé s'il existe
+        if (data.detailed_summary) {
+          if (typeof data.detailed_summary === "string") {
+            summaryHtml += `
                     <div class="prose max-w-none">
                         <h4 class="text-md font-medium text-gray-900 mb-3">Résumé détaillé :</h4>
                         <div>${data.detailed_summary}</div>
                     </div>`;
-                    } else if (typeof data.detailed_summary === 'object') {
-                        summaryHtml += `
+          } else if (typeof data.detailed_summary === "object") {
+            summaryHtml += `
                     <div class="space-y-6">
                         <h4 class="text-md font-medium text-gray-900">Résumé détaillé :</h4>`;
 
-                        // Gérer l'introduction
-                        if (data.detailed_summary.introduction) {
-                            summaryHtml += `
+            // Gérer l'introduction
+            if (data.detailed_summary.introduction) {
+              summaryHtml += `
                         <div class="bg-blue-50 p-4 rounded-lg">
                             <p class="text-sm text-gray-700">${data.detailed_summary.introduction}</p>
                         </div>`;
-                        }
+            }
 
-                        // Gérer les sections de développement
-                        if (Array.isArray(data.detailed_summary.developpement)) {
-                            data.detailed_summary.developpement.forEach(section => {
-                                summaryHtml += `
+            // Gérer les sections de développement
+            if (Array.isArray(data.detailed_summary.developpement)) {
+              data.detailed_summary.developpement.forEach((section) => {
+                summaryHtml += `
                             <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-4">
                                 <div class="px-4 py-3 bg-gray-50">
-                                    <h5 class="text-md font-medium text-gray-900">${section.title || 'Section'}</h5>
+                                    <h5 class="text-md font-medium text-gray-900">${
+                                      section.title || "Section"
+                                    }</h5>
                                 </div>
                                 <div class="px-4 py-4">
-                                    <div class="prose max-w-none text-sm text-gray-700">${section.content || ''}</div>
+                                    <div class="prose max-w-none text-sm text-gray-700">${
+                                      section.content || ""
+                                    }</div>
                                 </div>
                             </div>`;
-                            });
-                        }
+              });
+            }
 
-                        // Gérer la conclusion
-                        if (data.detailed_summary.conclusion) {
-                            summaryHtml += `
+            // Gérer la conclusion
+            if (data.detailed_summary.conclusion) {
+              summaryHtml += `
                         <div class="bg-gray-50 p-4 rounded-lg mt-4">
                             <p class="text-sm font-medium text-gray-700">${data.detailed_summary.conclusion}</p>
                         </div>`;
-                        }
+            }
 
-                        summaryHtml += `</div>`;
-                    }
-                }
+            summaryHtml += `</div>`;
+          }
+        }
 
-                // Ajouter les termes clés s'ils existent
-                if (data.key_terms && data.key_terms.length > 0) {
-                    summaryHtml += `
+        // Ajouter les termes clés s'ils existent
+        if (data.key_terms && data.key_terms.length > 0) {
+          summaryHtml += `
                 <div class="mt-6">
                     <h4 class="text-md font-medium text-gray-900 mb-3">Termes clés :</h4>
                     <div class="flex flex-wrap gap-2">`;
 
-                    data.key_terms.forEach(term => {
-                        const termText = typeof term === 'object' ? term.term : term;
-                        const definition = typeof term === 'object' ? term.definition : '';
+          data.key_terms.forEach((term) => {
+            const termText = typeof term === "object" ? term.term : term;
+            const definition = typeof term === "object" ? term.definition : "";
 
-                        summaryHtml += `
+            summaryHtml += `
                     <div class="bg-blue-50 px-3 py-1.5 rounded-full text-xs font-medium text-blue-800">
                         ${termText}
-                        ${definition ? `<span class="text-blue-600 ml-1" title="${definition}">ⓘ</span>` : ''}
+                        ${
+                          definition
+                            ? `<span class="text-blue-600 ml-1" title="${definition}">ⓘ</span>`
+                            : ""
+                        }
                     </div>`;
-                    });
+          });
 
-                    summaryHtml += `
+          summaryHtml += `
                     </div>
                 </div>`;
-                }
+        }
 
-                summaryHtml += `
+        summaryHtml += `
                     </div>
                 </div>
             </div>`;
 
-                summaryContent.innerHTML = summaryHtml;
-                summaryContent.classList.remove('hidden');
-            })
-            .catch(error => {
-                console.error('Erreur lors de la génération du résumé:', error);
-                loadingIndicator.classList.add('hidden');
+        summaryContent.innerHTML = summaryHtml;
+        summaryContent.classList.remove("hidden");
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la génération du résumé:", error);
+        loadingIndicator.classList.add("hidden");
 
-                // Afficher un message d'erreur
-                summaryContent.innerHTML = `
+        // Afficher un message d'erreur
+        summaryContent.innerHTML = `
             <div class="rounded-md bg-red-50 p-4">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -955,61 +1130,160 @@
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-red-800">Erreur lors de la génération du résumé</h3>
                         <div class="mt-2 text-sm text-red-700">
-                            <p>${error.error || error.message || 'Une erreur est survenue. Veuillez réessayer plus tard.'}</p>
+                            <p>${
+                              error.error ||
+                              error.message ||
+                              "Une erreur est survenue. Veuillez réessayer plus tard."
+                            }</p>
                         </div>
                     </div>
                 </div>
             </div>`;
-                summaryContent.classList.remove('hidden');
-            });
-    }
-    function toggleDropdown(dropdownId) {
-        const dropdown = document.getElementById(dropdownId);
-        dropdown.classList.toggle('hidden');
+        summaryContent.classList.remove("hidden");
+      });
+  }
+  function toggleDropdown(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.classList.toggle("hidden");
 
-        // Fermer le menu déroulant si on clique ailleurs
-        document.addEventListener('click', function closeDropdown(e) {
-            if (!e.target.closest('#' + dropdownId) && !e.target.closest('#' + dropdownId + '-button')) {
-                dropdown.classList.add('hidden');
-                document.removeEventListener('click', closeDropdown);
-            }
-        });
-    }
+    // Fermer le menu déroulant si on clique ailleurs
+    document.addEventListener("click", function closeDropdown(e) {
+      if (
+        !e.target.closest("#" + dropdownId) &&
+        !e.target.closest("#" + dropdownId + "-button")
+      ) {
+        dropdown.classList.add("hidden");
+        document.removeEventListener("click", closeDropdown);
+      }
+    });
+  }
 
-    // Gestion de la suppression
-    function confirmDelete(url, itemName) {
-        const modal = document.getElementById('delete-modal');
-        const itemToDelete = document.getElementById('item-to-delete');
-        const confirmBtn = document.getElementById('confirm-delete-btn');
+  // Gestion de la suppression
+  function confirmDelete(btn) {
+    const url = btn.dataset.url;
+    const itemName = btn.dataset.title;
 
-        itemToDelete.textContent = itemName;
-        confirmBtn.href = url;
+    const modal = document.getElementById("delete-modal");
+    const itemToDelete = document.getElementById("item-to-delete");
+    const deleteForm = document.getElementById("delete-form");
 
-        modal.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    }
+    itemToDelete.textContent = itemName;
+    deleteForm.action = url;
 
-    function closeModal() {
-        const modal = document.getElementById('delete-modal');
-        modal.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
+    modal.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  }
 
-    // Fonction pour éditer une carte mémoire
-    function editFlashcard(flashcardId) {
-        // Récupérer les détails de la carte via l'API
-        fetch(`/api/flashcards/${flashcardId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erreur lors de la récupération de la carte');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.card) {
-                    const card = data.card;
-                    // Afficher un formulaire modal avec les détails de la carte
-                    const modalContent = `
+  // Gestion de l'édition de document
+  function editDocument(btn) {
+    const docId = btn.dataset.id;
+    const title = btn.dataset.title;
+    const description = btn.dataset.description;
+
+    // Créer le modal d'édition dynamiquement
+    const modalContent = `
+        <div class="fixed z-10 inset-0 overflow-y-auto" id="edit-document-modal">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                    <div>
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Modifier le document
+                            </h3>
+                            <div class="mt-4">
+                                <label for="doc-title" class="block text-sm font-medium text-gray-700">Titre</label>
+                                <div class="mt-1">
+                                    <input type="text" id="doc-title" value="${title}" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label for="doc-description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <div class="mt-1">
+                                    <textarea id="doc-description" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">${
+                                      description || ""
+                                    }</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                        <button type="button" onclick="saveDocument(${docId})" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Enregistrer
+                        </button>
+                        <button type="button" onclick="document.getElementById('edit-document-modal').remove()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Ajouter le modal au DOM
+    const modalWrapper = document.createElement("div");
+    modalWrapper.innerHTML = modalContent;
+    document.body.appendChild(modalWrapper.firstElementChild);
+  }
+
+  function saveDocument(docId) {
+    const title = document.getElementById("doc-title").value;
+    const description = document.getElementById("doc-description").value;
+    const csrfToken = document
+      .querySelector('meta[name="csrf-token"]')
+      .getAttribute("content");
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+
+    fetch(`/study-buddy/documents/${docId}/edit`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert(
+            "Erreur lors de la mise à jour : " + (data.error || "Inconnue")
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur:", error);
+        alert("Une erreur est survenue.");
+      });
+  }
+
+  function closeModal() {
+    const modal = document.getElementById("delete-modal");
+    modal.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+
+  // Fonction pour éditer une carte mémoire
+  function editFlashcard(flashcardId) {
+    // Récupérer les détails de la carte via l'API
+    fetch(`/api/flashcards/${flashcardId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération de la carte");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success && data.card) {
+          const card = data.card;
+          // Afficher un formulaire modal avec les détails de la carte
+          const modalContent = `
                         <div class="fixed z-10 inset-0 overflow-y-auto">
                             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                                 <div class="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -1025,19 +1299,25 @@
                                             <div class="mt-4">
                                                 <label for="front" class="block text-sm font-medium text-gray-700">Recto</label>
                                                 <div class="mt-1">
-                                                    <textarea id="front" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">${card.front || ''}</textarea>
+                                                    <textarea id="front" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">${
+                                                      card.front || ""
+                                                    }</textarea>
                                                 </div>
                                             </div>
                                             <div class="mt-4">
                                                 <label for="back" class="block text-sm font-medium text-gray-700">Verso</label>
                                                 <div class="mt-1">
-                                                    <textarea id="back" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">${card.back || ''}</textarea>
+                                                    <textarea id="back" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">${
+                                                      card.back || ""
+                                                    }</textarea>
                                                 </div>
                                             </div>
                                             <div class="mt-4">
                                                 <label for="tags" class="block text-sm font-medium text-gray-700">Tags (séparés par des virgules)</label>
                                                 <div class="mt-1">
-                                                    <input type="text" id="tags" value="${card.tags || ''}" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">
+                                                    <input type="text" id="tags" value="${
+                                                      card.tags || ""
+                                                    }" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2">
                                                 </div>
                                             </div>
                                         </div>
@@ -1055,63 +1335,65 @@
                         </div>
                     `;
 
-                    // Ajouter le modal au DOM
-                    const modal = document.createElement('div');
-                    modal.id = 'edit-flashcard-modal';
-                    modal.innerHTML = modalContent;
-                    document.body.appendChild(modal);
-                } else {
-                    throw new Error('Données de la carte non disponibles');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Erreur lors du chargement de la carte: ' + error.message);
-            });
-    }
-
-    // Fonction pour sauvegarder les modifications d'une carte
-    function saveFlashcard(flashcardId) {
-        const front = document.getElementById('front').value;
-        const back = document.getElementById('back').value;
-        const tags = document.getElementById('tags').value;
-
-        fetch(`/api/flashcards/${flashcardId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                front: front,
-                back: back,
-                tags: tags
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Recharger la page pour voir les modifications
-                    window.location.reload();
-                } else {
-                    throw new Error(data.error || 'Erreur lors de la mise à jour');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Erreur lors de la mise à jour de la carte: ' + error.message);
-            });
-    }
-
-    // Fermer la modale avec la touche Échap
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            closeModal();
-            const modal = document.getElementById('edit-flashcard-modal');
-            if (modal) {
-                modal.remove();
-            }
+          // Ajouter le modal au DOM
+          const modal = document.createElement("div");
+          modal.id = "edit-flashcard-modal";
+          modal.innerHTML = modalContent;
+          document.body.appendChild(modal);
+        } else {
+          throw new Error("Données de la carte non disponibles");
         }
-    });
+      })
+      .catch((error) => {
+        console.error("Erreur:", error);
+        alert("Erreur lors du chargement de la carte: " + error.message);
+      });
+  }
+
+  // Fonction pour sauvegarder les modifications d'une carte
+  function saveFlashcard(flashcardId) {
+    const front = document.getElementById("front").value;
+    const back = document.getElementById("back").value;
+    const tags = document.getElementById("tags").value;
+
+    fetch(`/api/flashcards/${flashcardId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content"),
+      },
+      body: JSON.stringify({
+        front: front,
+        back: back,
+        tags: tags,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Recharger la page pour voir les modifications
+          window.location.reload();
+        } else {
+          throw new Error(data.error || "Erreur lors de la mise à jour");
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur:", error);
+        alert("Erreur lors de la mise à jour de la carte: " + error.message);
+      });
+  }
+
+  // Fermer la modale avec la touche Échap
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeModal();
+      const modal = document.getElementById("edit-flashcard-modal");
+      if (modal) {
+        modal.remove();
+      }
+    }
+  });
 </script>
 {% endblock %}

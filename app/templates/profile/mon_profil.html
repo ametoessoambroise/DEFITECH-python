@@ -792,6 +792,30 @@
       </form>
     </div>
   </div>
+
+    <!-- Bouton flottant de téléchargement (Étudiants uniquement) -->
+    {% if current_user.role == 'etudiant' and current_user.etudiant %}
+    <div class="fixed bottom-6 left-6 z-[9999] hidden lg:block">
+      <a
+        href="{{ url_for('profile.download_fiche') }}"
+        class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        title="Télécharger ma fiche d'inscription"
+      >
+        <i class="fas fa-file-pdf text-xl"></i>
+      </a>
+    </div>
+    <!-- Version mobile (Bouton supplémentaire dans la barre du bas ou flottant au-dessus) -->
+     <div class="lg:hidden fixed bottom-20 right-4 z-40">
+      <a
+         href="{{ url_for('profile.download_fiche') }}"
+        class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-transform active:scale-95"
+         title="Télécharger ma fiche"
+      >
+        <i class="fas fa-file-pdf"></i>
+      </a>
+    </div>
+    {% endif %}
+
 </div>
 
 <!-- Modal Configuration PIN -->

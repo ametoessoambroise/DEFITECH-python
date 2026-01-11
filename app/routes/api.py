@@ -190,7 +190,17 @@ def defai_chat(current_user):
             "language": "python",
             "code": "def process_data(...)...",
             "file_path": "src/utils.py",
-            "project_id": 123  // Optional
+            "project_id": 123,  // Optional
+            "source": "vscode_extension",  // Optional, défaut: "vscode_extension"
+            "tool_results": [  // Optional, résultats d'outils précédents
+                {
+                    "tool_name": "read_file",
+                    "success": true,
+                    "result": "...",
+                    "request_id": "req_123"
+                }
+            ],
+            "conversation_id": 456  // Optional
         }
 
     Returns:
@@ -198,7 +208,13 @@ def defai_chat(current_user):
             "success": true,
             "reply": "Réponse de DEFAI...",
             "conversation_id": 456,
-            "message_id": 789
+            "message_id": 789,
+            "tool_requests": [  // Si l'IA demande des outils
+                {
+                    "tool_name": "read_file",
+                    "parameters": {"file_path": "...", "limit": 50}
+                }
+            ]
         }
     """
     from app.services.defai_code_assistant import DefaiCodeAssistantService
@@ -293,13 +309,10 @@ def defai_chat(current_user):
         db.session.add(user_message)
         db.session.flush()
 
-        # Récupérer le contexte utilisateur
-        context_data = orchestrator.get_user_context(current_user.id, user_role)
-
-        # Enrichir le contexte avec les informations de code
-        enhanced_context = DefaiCodeAssistantService.enrich_context_for_gemini(
-            context_data, code_context
-        )
+        # Détecter si c'est une requête de l'extension VS Code avec le nouveau système
+        source = data.get("source", "vscode_extension")
+        tool_results = data.get("tool_results", [])
+        use_intellitech_system = source == "vscode_extension"
 
         # Récupérer l'historique de conversation (derniers 10 messages)
         previous_messages = (
@@ -319,18 +332,64 @@ def defai_chat(current_user):
             for msg in reversed(previous_messages)
         ]
 
-        # Construire le message enrichi pour Gemini
-        gemini_message = message
-        if code_context.selected_code:
-            code_formatted = DefaiCodeAssistantService.format_code_for_ai(
-                code_context.selected_code, code_context.language
-            )
-            gemini_message = f"{message}\n\n**Code concerné:**\n{code_formatted}"
+        # Utiliser le nouveau système Intelitech si applicable
+        if use_intellitech_system:
+            from app.services.intellitech_prompt import IntelitechPromptBuilder
+            from app.services.gemini_integration import GeminiIntegration
+            import os
 
-        # Appeler Gemini
-        gemini_response = call_gemini_api(
-            gemini_message, enhanced_context, messages_history, attachments=[]
-        )
+            # Initialiser GeminiIntegration
+            gemini_api_key = os.getenv("GEMINI_API_KEY")
+            gemini = GeminiIntegration(gemini_api_key)
+
+            # Préparer le contexte de code pour le prompt
+            code_context_dict = {
+                "file_path": code_context.file_path,
+                "language": code_context.language,
+            }
+            if code_context.selected_code:
+                code_context_dict["selected_code"] = code_context.selected_code
+
+            # Construire le prompt complet avec IntelitechPromptBuilder
+            full_prompt = IntelitechPromptBuilder.build_complete_prompt(
+                user_message=message,
+                code_context=code_context_dict,
+                tool_results=tool_results,
+                conversation_history=messages_history,
+            )
+
+            # Appeler Gemini directement avec use_system_prompt=False (déjà dans le prompt)
+            gemini_response = gemini.generate_response(
+                prompt=full_prompt,
+                context=None,  # Déjà inclus dans le prompt
+                conversation_history=None,  # Déjà inclus dans le prompt
+                attachments=[],
+                temperature=0.7,
+                use_system_prompt=False,  # Prompt système déjà intégré
+            )
+
+        else:
+            # Ancien système (pour compatibilité)
+            # Récupérer le contexte utilisateur
+            context_data = orchestrator.get_user_context(current_user.id, user_role)
+
+            # Enrichir le contexte avec les informations de code
+            enhanced_context = DefaiCodeAssistantService.enrich_context_for_gemini(
+                context_data, code_context
+            )
+
+            # Construire le message enrichi pour Gemini
+            gemini_message = message
+            if code_context.selected_code:
+                code_formatted = DefaiCodeAssistantService.format_code_for_ai(
+                    code_context.selected_code, code_context.language
+                )
+                gemini_message = f"{message}\n\n**Code concerné:**\n{code_formatted}"
+
+            # Appeler Gemini avec l'ancien système
+            gemini_response = call_gemini_api(
+                gemini_message, enhanced_context, messages_history, attachments=[]
+            )
 
         if not gemini_response["success"]:
             error_message = f"Erreur: {gemini_response['error']}"
@@ -354,6 +413,9 @@ def defai_chat(current_user):
 
         ai_response = gemini_response["response"]
 
+        # Extraire les demandes d'outils Intelitech (si présentes)
+        intellitech_tool_requests = gemini_response.get("intellitech_tool_requests", [])
+
         # Sauvegarder la réponse de l'assistant
         assistant_message = AIMessage(
             conversation_id=conversation_id,
@@ -363,7 +425,8 @@ def defai_chat(current_user):
                 "finish_reason": gemini_response.get("finish_reason", "STOP"),
                 "grounding_metadata": gemini_response.get("grounding_metadata", {}),
                 "has_web_search": gemini_response.get("has_web_search", False),
-                "source": "vscode_extension",
+                "source": source,
+                "intellitech_tool_requests": intellitech_tool_requests,
             },
             created_at=datetime.utcnow(),
             message_order=AIMessage.query.filter_by(
@@ -375,19 +438,28 @@ def defai_chat(current_user):
         db.session.commit()
 
         logger.info(
-            f"DEFAI chat réussi pour utilisateur {current_user.id}, conversation {conversation_id}"
+            f"DEFAI chat réussi pour utilisateur {current_user.id}, conversation {conversation_id}, "
+            f"outils demandés: {len(intellitech_tool_requests)}"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "reply": ai_response,
-                "conversation_id": conversation_id,
-                "message_id": assistant_message.id,
-                "grounding_metadata": gemini_response.get("grounding_metadata", {}),
-                "has_web_search": gemini_response.get("has_web_search", False),
-            }
-        )
+        # Préparer la réponse
+        response_data = {
+            "success": True,
+            "reply": ai_response,
+            "conversation_id": conversation_id,
+            "message_id": assistant_message.id,
+            "grounding_metadata": gemini_response.get("grounding_metadata", {}),
+            "has_web_search": gemini_response.get("has_web_search", False),
+        }
+
+        # Ajouter les demandes d'outils si présentes
+        if intellitech_tool_requests:
+            response_data["tool_requests"] = intellitech_tool_requests
+            logger.info(
+                f"Demandes d'outils Intelitech incluses dans la réponse: {[req['tool_name'] for req in intellitech_tool_requests]}"
+            )
+
+        return jsonify(response_data)
 
     except Exception as e:
         logger.exception(f"Erreur DEFAI chat: {e}")

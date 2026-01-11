@@ -246,6 +246,9 @@ class GeminiIntegration:
             # Analyser les demandes de données dans la réponse
             data_requests = self._parse_data_requests(text_response)
 
+            # Analyser les demandes d'outils Intelitech dans la réponse
+            intellitech_tool_requests = self._parse_intellitech_tool_requests(text_response)
+
             # Détecter la génération d'images
             has_image_generation = "[IMAGE_EDUCATIVE:" in text_response
 
@@ -260,6 +263,7 @@ class GeminiIntegration:
                 "success": True,
                 "response": cleaned_response,
                 "data_requests": data_requests,
+                "intellitech_tool_requests": intellitech_tool_requests,
                 "has_web_search": has_web_search,
                 "has_image_generation": has_image_generation,
                 "grounding_metadata": grounding_metadata,
@@ -311,6 +315,90 @@ class GeminiIntegration:
             )
 
         return requests
+
+    def _parse_intellitech_tool_requests(self, response_text: str) -> List[Dict[str, Any]]:
+        """
+        Extrait les demandes d'outils Intelitech de la réponse de l'IA
+
+        Format attendu: [INTELLITECH_TOOL: nom_outil, {paramètres_json}]
+
+        Args:
+            response_text: Texte de la réponse de l'IA
+
+        Returns:
+            Liste de dictionnaires contenant tool_name et parameters
+        """
+        import json
+        from app.services.intellitech_tools_registry import IntelitechToolsRegistry
+
+        # Pattern pour détecter [INTELLITECH_TOOL: nom_outil, {json}]
+        # Le pattern capture le nom de l'outil et les paramètres JSON
+        pattern = r"\[INTELLITECH_TOOL:\s*([^,]+),\s*(\{[^\}]*(?:\{[^\}]*\}[^\}]*)*\})\s*\]"
+        matches = re.findall(pattern, response_text, re.IGNORECASE | re.DOTALL)
+
+        tool_requests = []
+        for tool_name, params_json in matches:
+            try:
+                tool_name = tool_name.strip()
+                params_json = params_json.strip()
+
+                # Valider que l'outil existe dans le registry
+                tool_def = IntelitechToolsRegistry.get_tool_by_name(tool_name)
+                if not tool_def:
+                    logger.warning(
+                        f"Outil inconnu détecté dans la réponse: {tool_name}"
+                    )
+                    continue
+
+                # Parser les paramètres JSON
+                try:
+                    parameters = json.loads(params_json)
+                    if not isinstance(parameters, dict):
+                        logger.warning(
+                            f"Paramètres de l'outil {tool_name} ne sont pas un dictionnaire"
+                        )
+                        continue
+                except json.JSONDecodeError as e:
+                    logger.warning(
+                        f"Erreur parsing JSON pour l'outil {tool_name}: {e}. JSON: {params_json[:100]}"
+                    )
+                    continue
+
+                # Valider les paramètres selon le schéma de l'outil (basique)
+                # Vérifier les paramètres obligatoires
+                validated_params = {}
+                for param_name, param_spec in tool_def.parameters.items():
+                    if param_spec.get("required", False) and param_name not in parameters:
+                        logger.warning(
+                            f"Paramètre obligatoire manquant pour {tool_name}: {param_name}"
+                        )
+                        # On continue quand même, l'extension pourra gérer l'erreur
+                    if param_name in parameters:
+                        validated_params[param_name] = parameters[param_name]
+
+                tool_requests.append(
+                    {
+                        "tool_name": tool_name,
+                        "parameters": validated_params,
+                    }
+                )
+
+                logger.info(
+                    f"Demande d'outil Intelitech détectée: {tool_name} avec {len(validated_params)} paramètres"
+                )
+
+            except Exception as e:
+                logger.error(
+                    f"Erreur lors du parsing de la demande d'outil: {e}"
+                )
+                continue
+
+        if tool_requests:
+            logger.info(
+                f"Total demandes d'outils Intelitech détectées: {len(tool_requests)} - {[req['tool_name'] for req in tool_requests]}"
+            )
+
+        return tool_requests
 
     def _process_security_alerts(self, text: str, user_message: str = ""):
         """Détecte et exécute les alertes de sécurité dans la réponse de l'IA"""
@@ -373,6 +461,15 @@ class GeminiIntegration:
         # Supprimer les signalements de sécurité du texte final (ils sont traités séparément)
         text = re.sub(r"\[SECURITY_ALERT:[^\]]+\]", "", text, flags=re.IGNORECASE)
 
+        # Supprimer les demandes d'outils Intelitech du texte final (elles seront traitées séparément)
+        # Pattern plus complexe pour gérer les JSON imbriqués
+        text = re.sub(
+            r"\[INTELLITECH_TOOL:\s*[^,]+,\s*\{[^\}]*(?:\{[^\}]*\}[^\}]*)*\}\s*\]",
+            "",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
         return text.strip()
 
     def test_connection(self) -> Dict[str, Any]:
@@ -416,6 +513,7 @@ class GeminiIntegration:
         conversation_history: Optional[List[Dict]] = None,
         attachments: Optional[List[Dict]] = None,
         temperature: float = 0.7,
+        use_system_prompt: bool = True,
     ) -> Dict[str, Any]:
         """
         Génère une réponse via l'API Gemini avec gestion complète des erreurs
@@ -431,8 +529,12 @@ class GeminiIntegration:
         """
 
         try:
-            # Construire le prompt complet
-            full_prompt = self._build_prompt(prompt, context, conversation_history)
+            # Construire le prompt complet (ou juste le prompt utilisateur si use_system_prompt=False)
+            if use_system_prompt:
+                full_prompt = self._build_prompt(prompt, context, conversation_history)
+            else:
+                # Pour Study Buddy: utiliser uniquement le prompt sans system_prompt
+                full_prompt = prompt
 
             # Préparer les parties (parts) pour le multimodal
             parts = [{"text": full_prompt}]

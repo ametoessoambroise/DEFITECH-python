@@ -120,7 +120,7 @@ class StudyBuddyAI:
                 summary = json.loads(clean_text)
             except json.JSONDecodeError as e:
                 logger.warning(
-                    "Échec du parsing JSON, tentative d'extraction du texte brut", e
+                    f"Échec du parsing JSON, tentative d'extraction du texte brut: {e}"
                 )
                 # Si le parsing JSON échoue, retourner le texte brut comme résumé
                 summary = {

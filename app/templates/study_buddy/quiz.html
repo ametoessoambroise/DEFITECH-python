@@ -1,369 +1,442 @@
-{% extends "study_buddy/base.html" %}
-
-{% block title %}{{ quiz.title }} - Question {{ question_number }}/{{ total_questions }}{% endblock %}
-
-{% block content %}
+{% extends "study_buddy/base.html" %} {% block title %}{{ quiz.title }} -
+Question {{ question_number }}/{{ total_questions }}{% endblock %} {% block
+content %}
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white shadow rounded-lg p-6">
-        <!-- En-tête du quiz -->
-        <div class="mb-8 text-center">
-            <h1 class="text-2xl font-bold text-gray-900">{{ quiz.title }}</h1>
-            <div class="mt-2 text-sm text-gray-500">
-                Question {{ question_number }} sur {{ total_questions }}
-            </div>
+  <div class="bg-white shadow rounded-lg p-6">
+    <!-- En-tête du quiz -->
+    <div class="mb-8 text-center">
+      <h1 class="text-2xl font-bold text-gray-900">{{ quiz.title }}</h1>
+      <div class="mt-2 text-sm text-gray-500">
+        Question {{ question_number }} sur {{ total_questions }}
+      </div>
 
-            <!-- Barre de progression -->
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
-                <div class="bg-primary-600 h-2.5 rounded-full transition-all duration-300"
-                    style="width: {{ (question_number / (total_questions or 1) * 100)|round|int }}%">
-                </div>
-            </div>
-        </div>
-
-        <!-- Alertes d'erreur -->
-        <div id="errorAlert" class="hidden mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-red-800" id="errorMessage"></h3>
-                </div>
-                <div class="ml-auto pl-3">
-                    <button onclick="document.getElementById('errorAlert').classList.add('hidden')"
-                        class="text-red-400 hover:text-red-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Question actuelle -->
-        {% if question_actuelle %}
-        <div class="mb-8">
-            <div class="bg-gray-50 p-6 rounded-lg">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">
-                    {{ question_actuelle.question_text }}
-                </h2>
-
-                <form id="answerForm">
-                    {% set options = question_actuelle.options|from_json if question_actuelle.options else [] %}
-
-                    {% if question_actuelle.question_type == 'qcm' and options %}
-                    <!-- Question à choix multiples -->
-                    <div class="space-y-3" role="radiogroup" aria-label="Options de réponse">
-                        {% for option in options %}
-                        <div
-                            class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <input id="option-{{ loop.index }}" name="answer" type="radio" value="{{ option }}"
-                                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300" required>
-                            <label for="option-{{ loop.index }}" class="ml-3 block text-gray-700 cursor-pointer flex-1">
-                                {{ option }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    {% elif question_actuelle.question_type in ['vrai_faux', 'true_false'] %}
-                    <!-- Vrai/Faux -->
-                    <div class="space-y-3" role="radiogroup" aria-label="Options Vrai/Faux">
-                        <div
-                            class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <input id="true-option" name="answer" type="radio" value="Vrai"
-                                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300" required>
-                            <label for="true-option" class="ml-3 block text-gray-700 cursor-pointer flex-1">
-                                <span class="font-medium">Vrai</span>
-                            </label>
-                        </div>
-                        <div
-                            class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <input id="false-option" name="answer" type="radio" value="Faux"
-                                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300" required>
-                            <label for="false-option" class="ml-3 block text-gray-700 cursor-pointer flex-1">
-                                <span class="font-medium">Faux</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {% else %}
-                    <!-- Réponse courte -->
-                    <div>
-                        <label for="answer" class="sr-only">Votre réponse</label>
-                        <input type="text" name="answer" id="answer"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                            placeholder="Votre réponse..." required autocomplete="off">
-                        <p class="mt-2 text-sm text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Entrez votre réponse et appuyez sur Entrée ou cliquez sur Suivant
-                        </p>
-                    </div>
-                    {% endif %}
-                </form>
-
-                <!-- Explication (visible après réponse si nécessaire) -->
-                {% if show_explanation and question_actuelle.explanation %}
-                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                    <p class="text-sm text-blue-700">
-                        <span class="font-medium"><i class="fas fa-lightbulb mr-1"></i>Explication :</span>
-                        {{ question_actuelle.explanation }}
-                    </p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% else %}
-        <!-- Aucune question disponible -->
-        <div class="text-center py-12">
-            <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-            <h3 class="text-lg font-medium text-gray-900">Aucune question disponible</h3>
-            <p class="mt-2 text-sm text-gray-500">Le quiz ne contient pas de questions.</p>
-            <a href="{{ url_for('study_buddy.document_detail', document_id=quiz.document_id) }}"
-                class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Retour au document
-            </a>
-        </div>
-        {% endif %}
-
-        <!-- Boutons de navigation -->
-        {% if question_actuelle %}
-        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-            <div>
-                {% if question_number > 1 %}
-                <a href="{{ url_for('study_buddy.take_quiz', quiz_id=quiz.id) }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i> Précédent
-                </a>
-                {% else %}
-                <a href="{{ url_for('study_buddy.document_detail', document_id=quiz.document_id) }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
-                    <i class="fas fa-times mr-2"></i> Quitter
-                </a>
-                {% endif %}
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <!-- Indicateur de sauvegarde -->
-                <span id="saveIndicator" class="hidden text-sm text-green-600">
-                    <i class="fas fa-check-circle mr-1"></i> Réponse enregistrée
-                </span>
-
-                {% if question_number < total_questions %} <button type="button" id="nextButton"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    Suivant <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                    {% else %}
-                    <button type="button" id="submitButton"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                        Terminer le quiz <i class="fas fa-check ml-2"></i>
-                    </button>
-                    {% endif %}
-            </div>
-        </div>
-        {% endif %}
+      <!-- Barre de progression -->
+      <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+        <div
+          class="bg-primary-600 h-2.5 rounded-full transition-all duration-300"
+          style="width: {{ (question_number / (total_questions or 1) * 100)|round|int }}%"
+        ></div>
+      </div>
     </div>
+
+    <!-- Alertes d'erreur -->
+    <div
+      id="errorAlert"
+      class="hidden mb-4 bg-red-50 border border-red-200 rounded-md p-4"
+    >
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-circle text-red-400"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800" id="errorMessage"></h3>
+        </div>
+        <div class="ml-auto pl-3">
+          <button
+            onclick="document.getElementById('errorAlert').classList.add('hidden')"
+            class="text-red-400 hover:text-red-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question actuelle -->
+    {% if question_actuelle %}
+    <div class="mb-8">
+      <div class="bg-gray-50 p-6 rounded-lg">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">
+          {{ question_actuelle.question_text }}
+        </h2>
+
+        <form id="answerForm">
+          {% set options = question_actuelle.options|from_json if
+          question_actuelle.options else [] %} {% if
+          question_actuelle.question_type == 'qcm' and options %}
+          <!-- Question à choix multiples -->
+          <div
+            class="space-y-3"
+            role="radiogroup"
+            aria-label="Options de réponse"
+          >
+            {% for option in options %}
+            <div
+              class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <input
+                id="option-{{ loop.index }}"
+                name="answer"
+                type="radio"
+                value="{{ option }}"
+                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                required
+              />
+              <label
+                for="option-{{ loop.index }}"
+                class="ml-3 block text-gray-700 cursor-pointer flex-1"
+              >
+                {{ option }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% elif question_actuelle.question_type in ['vrai_faux', 'true_false']
+          %}
+          <!-- Vrai/Faux -->
+          <div
+            class="space-y-3"
+            role="radiogroup"
+            aria-label="Options Vrai/Faux"
+          >
+            <div
+              class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <input
+                id="true-option"
+                name="answer"
+                type="radio"
+                value="Vrai"
+                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                required
+              />
+              <label
+                for="true-option"
+                class="ml-3 block text-gray-700 cursor-pointer flex-1"
+              >
+                <span class="font-medium">Vrai</span>
+              </label>
+            </div>
+            <div
+              class="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <input
+                id="false-option"
+                name="answer"
+                type="radio"
+                value="Faux"
+                class="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                required
+              />
+              <label
+                for="false-option"
+                class="ml-3 block text-gray-700 cursor-pointer flex-1"
+              >
+                <span class="font-medium">Faux</span>
+              </label>
+            </div>
+          </div>
+
+          {% else %}
+          <!-- Réponse courte -->
+          <div>
+            <label for="answer" class="sr-only">Votre réponse</label>
+            <input
+              type="text"
+              name="answer"
+              id="answer"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              placeholder="Votre réponse..."
+              required
+              autocomplete="off"
+            />
+            <p class="mt-2 text-sm text-gray-500">
+              <i class="fas fa-info-circle mr-1"></i>
+              Entrez votre réponse et appuyez sur Entrée ou cliquez sur Suivant
+            </p>
+          </div>
+          {% endif %}
+        </form>
+
+        <!-- Explication (visible après réponse si nécessaire) -->
+        {% if show_explanation and question_actuelle.explanation %}
+        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <p class="text-sm text-blue-700">
+            <span class="font-medium"
+              ><i class="fas fa-lightbulb mr-1"></i>Explication :</span
+            >
+            {{ question_actuelle.explanation }}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <!-- Aucune question disponible -->
+    <div class="text-center py-12">
+      <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
+      <h3 class="text-lg font-medium text-gray-900">
+        Aucune question disponible
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        Le quiz ne contient pas de questions.
+      </p>
+      <a
+        href="{{ url_for('study_buddy.document_detail', document_id=quiz.document_id) }}"
+        class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>
+        Retour au document
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Boutons de navigation -->
+    {% if question_actuelle %}
+    <div
+      class="flex justify-between items-center pt-4 border-t border-gray-200"
+    >
+      <div>
+        {% if question_number > 1 %}
+        <a
+          href="{{ url_for('study_buddy.take_quiz', quiz_id=quiz.id) }}"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+        >
+          <i class="fas fa-arrow-left mr-2"></i> Précédent
+        </a>
+        {% else %}
+        <a
+          href="{{ url_for('study_buddy.document_detail', document_id=quiz.document_id) }}"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+        >
+          <i class="fas fa-times mr-2"></i> Quitter
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <!-- Indicateur de sauvegarde -->
+        <span id="saveIndicator" class="hidden text-sm text-green-600">
+          <i class="fas fa-check-circle mr-1"></i> Réponse enregistrée
+        </span>
+
+        {% if question_number < total_questions %}
+        <button
+          type="button"
+          id="nextButton"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Suivant <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+        {% else %}
+        <button
+          type="button"
+          id="submitButton"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Terminer le quiz <i class="fas fa-check ml-2"></i>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
 
 <!-- Loading overlay -->
-<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-        <p class="text-gray-700 font-medium">Enregistrement de votre réponse...</p>
-    </div>
+<div
+  id="loadingOverlay"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+>
+  <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
+    ></div>
+    <p class="text-gray-700 font-medium">Enregistrement de votre réponse...</p>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-    (function () {
-        'use strict';
+  (function () {
+      'use strict';
 
-        // Configuration
-        const ATTEMPT_ID = {{ attempt_id }};
-        const QUESTION_ID = {{ question_actuelle.id if question_actuelle else 'null' }};
-        const CSRF_TOKEN = "{{ csrf_token() }}";
-        const SUBMIT_URL = "{{ url_for('study_buddy.submit_quiz_answer', attempt_id=attempt_id) }}";
+      // Configuration
+      const ATTEMPT_ID = {{ attempt_id }};
+      const QUESTION_ID = {{ question_actuelle.id if question_actuelle else 'null' }};
+      const CSRF_TOKEN = "{{ csrf_token() }}";
+      const SUBMIT_URL = "{{ url_for('study_buddy.submit_quiz_answer', attempt_id=attempt_id) }}";
 
-    // Éléments DOM
-    let nextButton, submitButton, loadingOverlay, errorAlert, saveIndicator;
+  // Éléments DOM
+  let nextButton, submitButton, loadingOverlay, errorAlert, saveIndicator;
 
-    // Initialisation au chargement du DOM
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeElements();
-        attachEventListeners();
-        enableFormValidation();
+  // Initialisation au chargement du DOM
+  document.addEventListener('DOMContentLoaded', function () {
+      initializeElements();
+      attachEventListeners();
+      enableFormValidation();
 
-        // Support du raccourci clavier Entrée
-        document.getElementById('answerForm')?.addEventListener('submit', handleFormSubmit);
-    });
+      // Support du raccourci clavier Entrée
+      document.getElementById('answerForm')?.addEventListener('submit', handleFormSubmit);
+  });
 
-    function initializeElements() {
-        nextButton = document.getElementById('nextButton');
-        submitButton = document.getElementById('submitButton');
-        loadingOverlay = document.getElementById('loadingOverlay');
-        errorAlert = document.getElementById('errorAlert');
-        saveIndicator = document.getElementById('saveIndicator');
-    }
+  function initializeElements() {
+      nextButton = document.getElementById('nextButton');
+      submitButton = document.getElementById('submitButton');
+      loadingOverlay = document.getElementById('loadingOverlay');
+      errorAlert = document.getElementById('errorAlert');
+      saveIndicator = document.getElementById('saveIndicator');
+  }
 
-    function attachEventListeners() {
-        // Boutons de navigation
-        nextButton?.addEventListener('click', handleSubmit);
-        submitButton?.addEventListener('click', handleSubmit);
+  function attachEventListeners() {
+      // Boutons de navigation
+      nextButton?.addEventListener('click', handleSubmit);
+      submitButton?.addEventListener('click', handleSubmit);
 
-        // Mise à jour en temps réel des réponses
-        document.querySelectorAll('input[type="radio"]').forEach(input => {
-            input.addEventListener('change', handleAnswerChange);
-        });
+      // Mise à jour en temps réel des réponses
+      document.querySelectorAll('input[type="radio"]').forEach(input => {
+          input.addEventListener('change', handleAnswerChange);
+      });
 
-        const textAnswer = document.getElementById('answer');
-        textAnswer?.addEventListener('input', handleAnswerChange);
-        textAnswer?.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSubmit();
-            }
-        });
-    }
+      const textAnswer = document.getElementById('answer');
+      textAnswer?.addEventListener('input', handleAnswerChange);
+      textAnswer?.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSubmit();
+          }
+      });
+  }
 
-    function handleFormSubmit(e) {
-        e.preventDefault();
-        handleSubmit();
-    }
+  function handleFormSubmit(e) {
+      e.preventDefault();
+      handleSubmit();
+  }
 
-    function handleAnswerChange() {
-        // Masquer l'erreur si elle est affichée
-        errorAlert?.classList.add('hidden');
+  function handleAnswerChange() {
+      // Masquer l'erreur si elle est affichée
+      errorAlert?.classList.add('hidden');
 
-        // Activer le bouton de soumission
-        if (nextButton) nextButton.disabled = false;
-        if (submitButton) submitButton.disabled = false;
-    }
+      // Activer le bouton de soumission
+      if (nextButton) nextButton.disabled = false;
+      if (submitButton) submitButton.disabled = false;
+  }
 
-    function enableFormValidation() {
-        const form = document.getElementById('answerForm');
-        if (form) {
-            form.setAttribute('novalidate', 'novalidate');
-        }
-    }
+  function enableFormValidation() {
+      const form = document.getElementById('answerForm');
+      if (form) {
+          form.setAttribute('novalidate', 'novalidate');
+      }
+  }
 
-    function getSelectedAnswer() {
-        // Vérifier les boutons radio
-        const radioInput = document.querySelector('input[type="radio"]:checked');
-        if (radioInput) {
-            return radioInput.value;
-        }
+  function getSelectedAnswer() {
+      // Vérifier les boutons radio
+      const radioInput = document.querySelector('input[type="radio"]:checked');
+      if (radioInput) {
+          return radioInput.value;
+      }
 
-        // Vérifier le champ texte
-        const textInput = document.getElementById('answer');
-        if (textInput && textInput.value.trim()) {
-            return textInput.value.trim();
-        }
+      // Vérifier le champ texte
+      const textInput = document.getElementById('answer');
+      if (textInput && textInput.value.trim()) {
+          return textInput.value.trim();
+      }
 
-        return null;
-    }
+      return null;
+  }
 
-    function showError(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
-            errorMessage.textContent = message;
-            errorAlert?.classList.remove('hidden');
+  function showError(message) {
+      const errorMessage = document.getElementById('errorMessage');
+      if (errorMessage) {
+          errorMessage.textContent = message;
+          errorAlert?.classList.remove('hidden');
 
-            // Scroll vers l'erreur
-            errorAlert?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            alert(message);
-        }
-    }
+          // Scroll vers l'erreur
+          errorAlert?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+          alert(message);
+      }
+  }
 
-    function showLoading() {
-        loadingOverlay?.classList.remove('hidden');
-        if (nextButton) {
-            nextButton.disabled = true;
-            nextButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi...';
-        }
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi...';
-        }
-    }
+  function showLoading() {
+      loadingOverlay?.classList.remove('hidden');
+      if (nextButton) {
+          nextButton.disabled = true;
+          nextButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi...';
+      }
+      if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi...';
+      }
+  }
 
-    function hideLoading() {
-        loadingOverlay?.classList.add('hidden');
-        if (nextButton) {
-            nextButton.disabled = false;
-            nextButton.innerHTML = 'Suivant <i class="fas fa-arrow-right ml-2"></i>';
-        }
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Terminer le quiz <i class="fas fa-check ml-2"></i>';
-        }
-    }
+  function hideLoading() {
+      loadingOverlay?.classList.add('hidden');
+      if (nextButton) {
+          nextButton.disabled = false;
+          nextButton.innerHTML = 'Suivant <i class="fas fa-arrow-right ml-2"></i>';
+      }
+      if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = 'Terminer le quiz <i class="fas fa-check ml-2"></i>';
+      }
+  }
 
-    function showSaveIndicator() {
-        if (saveIndicator) {
-            saveIndicator.classList.remove('hidden');
-            setTimeout(() => {
-                saveIndicator.classList.add('hidden');
-            }, 2000);
-        }
-    }
+  function showSaveIndicator() {
+      if (saveIndicator) {
+          saveIndicator.classList.remove('hidden');
+          setTimeout(() => {
+              saveIndicator.classList.add('hidden');
+          }, 2000);
+      }
+  }
 
-    async function handleSubmit() {
-        // Validation
-        const answer = getSelectedAnswer();
-        if (!answer) {
-            showError('Veuillez sélectionner ou saisir une réponse avant de continuer.');
-            return;
-        }
+  async function handleSubmit() {
+      // Validation
+      const answer = getSelectedAnswer();
+      if (!answer) {
+          showError('Veuillez sélectionner ou saisir une réponse avant de continuer.');
+          return;
+      }
 
-        // Préparer les données
-        const payload = {
-            question_id: QUESTION_ID,
-            answer: answer
-        };
+      // Préparer les données
+      const payload = {
+          question_id: QUESTION_ID,
+          answer: answer
+      };
 
-        showLoading();
+      showLoading();
 
-        try {
-            const response = await fetch(SUBMIT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': CSRF_TOKEN
-                },
-                body: JSON.stringify(payload)
-            });
+      try {
+          const response = await fetch(SUBMIT_URL, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': CSRF_TOKEN
+              },
+              body: JSON.stringify(payload)
+          });
 
-            const data = await response.json();
+          const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || `Erreur HTTP: ${response.status}`);
-            }
+          if (!response.ok) {
+              throw new Error(data.error || `Erreur HTTP: ${response.status}`);
+          }
 
-            // Succès - afficher l'indicateur
-            showSaveIndicator();
+          // Succès - afficher l'indicateur
+          showSaveIndicator();
 
-            // Gérer la redirection ou le rechargement
-            if (data.redirect) {
-                // Rediriger vers la page des résultats
-                window.location.href = data.redirect;
-            } else if (data.next_url) {
-                // Aller à la question suivante
-                window.location.href = data.next_url;
-            } else {
-                // Recharger la page par défaut
-                window.location.reload();
-            }
+          // Gérer la redirection ou le rechargement
+          if (data.redirect) {
+              // Rediriger vers la page des résultats
+              window.location.href = data.redirect;
+          } else if (data.next_url) {
+              // Aller à la question suivante
+              window.location.href = data.next_url;
+          } else {
+              // Recharger la page par défaut
+              window.location.reload();
+          }
 
-        } catch (error) {
-            console.error('Erreur lors de la soumission:', error);
-            showError(`Erreur lors de la soumission: ${error.message}`);
-        } finally {
-            hideLoading();
-        }
-    }
-    // Exposer la fonction globalement pour compatibilité
-    window.submitQuiz = handleSubmit;
-    }) ();
+      } catch (error) {
+          console.error('Erreur lors de la soumission:', error);
+          showError(`Erreur lors de la soumission: ${error.message}`);
+      } finally {
+          hideLoading();
+      }
+  }
+  // Exposer la fonction globalement pour compatibilité
+  window.submitQuiz = handleSubmit;
+  }) ();
 </script>
 {% endblock %}

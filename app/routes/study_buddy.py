@@ -26,7 +26,14 @@ from flask_login import current_user, login_required
 # Local application imports
 from app.extensions import db
 from app.models.flashcard import Flashcard, FlashcardStatus
-from app.models.quiz_models import Question, Quiz, QuizAnswer, QuizAttempt
+from app.models.quiz_models import (
+    Question,
+    Quiz,
+    QuizAnswer,
+    QuizAttempt,
+    QuizQuestion,
+    QuizResponse,
+)
 from app.models.study_document import StudyDocument
 from app.models.study_progress import StudyProgress
 from app.models.study_session import StudySession
@@ -103,12 +110,21 @@ def get_document_buffer(document: StudyDocument) -> Optional[io.BytesIO]:
     """Récupère le contenu d'un document (local ou distant) et retourne un buffer."""
     if document.file_path.startswith(("http://", "https://")):
         try:
+            logger.info(f"Tentative de téléchargement depuis URL: {document.file_path}")
             response = requests.get(document.file_path, timeout=10)
             if response.status_code == 200:
+                logger.info(
+                    f"Téléchargement réussi pour doc {document.id}. Taille: {len(response.content)} bytes"
+                )
                 return io.BytesIO(response.content)
+            else:
+                logger.error(
+                    f"Échec téléchargement HTTP {response.status_code} pour doc {document.id}"
+                )
+                return None
         except Exception as e:
             logger.error(
-                f"Erreur lors du téléchargement du document {document.id}: {e}"
+                f"Erreur lors du téléchargement du document {document.id} depuis {document.file_path}: {e}"
             )
             return None
     else:
@@ -193,34 +209,46 @@ def upload_document():
         Si la requête est POST, renvoie une redirection vers la page d'accueil.
     """
     if request.method == "POST":
-        # Valider si l'URL du fichier est présente
-        file_url = request.form.get("file_url")
-        if not file_url:
-            flash("Veuillez uploader un fichier avant de soumettre.", "error")
+        # Valider si un fichier est présent
+        if "file" not in request.files:
+            flash("Aucun fichier sélectionné.", "error")
             return redirect(request.url)
 
-        # Récupérer les métadonnées (peuplées par JS)
-        original_filename = request.form.get("original_filename", "unknown")
-        file_size = request.form.get("file_size", 0)
-        file_format = request.form.get("file_format", "").lower()
+        file = request.files["file"]
+        if file.filename == "":
+            flash("Aucun fichier sélectionné.", "error")
+            return redirect(request.url)
 
-        # Si le format n'est pas fourni, essayer de le déduire
-        if not file_format and "." in original_filename:
-            file_format = original_filename.rsplit(".", 1)[1].lower()
+        if not allowed_file(file.filename):
+            flash("Type de fichier non autorisé.", "error")
+            return redirect(request.url)
 
         try:
+            from app.utils.cloudinary_utils import upload_to_cloudinary
+
+            # Upload to Cloudinary
+            upload_result = upload_to_cloudinary(
+                file, file.filename, folder="study_documents", resource_type="raw"
+            )
+
+            # Extract metadata from result
+            file_url = upload_result.get("secure_url")
+            file_size = upload_result.get("bytes", 0)
+            file_format = upload_result.get("format")
+            if not file_format and "." in file.filename:
+                file_format = file.filename.rsplit(".", 1)[1].lower()
+
             # Créer un nouvel enregistrement de document avec l'URL Cloudinary
+            description = request.form.get("description", "")
             document = StudyDocument(
                 user_id=current_user.id,
-                title=request.form.get("title")
-                or os.path.splitext(original_filename)[0],
-                file_name=original_filename,
+                title=request.form.get("title") or os.path.splitext(file.filename)[0],
+                file_name=file.filename,
                 file_path=file_url,  # URL Cloudinary
                 file_type=file_format,
-                file_size=int(file_size) if file_size else 0,
-                description=request.form.get(
-                    "description", ""
-                ),  # Ajout description si dispo dans formulaire
+                file_size=int(file_size),
+                # Stocker la description dans les métadonnées car la colonne n'existe pas
+                content_metadata={"description": description} if description else None,
             )
             # Note: Le modèle peut avoir d'autres champs non gérés ici, mais on se concentre sur l'essentiel
 
@@ -391,7 +419,14 @@ def generate_summary(document_id):
     level = request.json.get("level", "intermediate")
 
     # Récupérer le contenu du document
-    buffer = get_document_buffer(document)
+    try:
+        buffer = get_document_buffer(document)
+    except Exception as e:
+        return (
+            jsonify({"error": f"Erreur lors de la récupération du document: {str(e)}"}),
+            500,
+        )
+
     if not buffer:
         return jsonify({"error": "Impossible de récupérer le contenu du document"}), 404
 
@@ -450,6 +485,30 @@ def generate_summary(document_id):
 def extract_questions_from_text(text):
     """Tente d'extraire des questions à partir d'un texte brut"""
     import re
+
+    # D'abord, essayer d'extraire le JSON depuis un bloc markdown
+    json_match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group(1))
+            if "questions" in data:
+                logger.info(
+                    f"JSON extrait du bloc markdown: {len(data['questions'])} questions"
+                )
+                return data["questions"]
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON dans bloc markdown invalide: {e}")
+
+    # Essayer de trouver un objet JSON brut dans le texte
+    json_match = re.search(r'\{[^{}]*"questions"[^{}]*\[.*?\]\s*\}', text, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group(0))
+            if "questions" in data:
+                logger.info(f"JSON brut extrait: {len(data['questions'])} questions")
+                return data["questions"]
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON brut invalide: {e}")
 
     questions = []
 
@@ -538,7 +597,7 @@ def generate_quiz(document_id):
         return render_template(
             "study_buddy/generate_quiz.html",
             document=document,
-            title=f"Générer un quiz - {document.title}",
+            title=f"Générer un quiz pour '{document.title}'",
             progress=progress,
         )
 
@@ -547,7 +606,14 @@ def generate_quiz(document_id):
         return jsonify({"error": "Accès non autorisé"}), 403
 
     # Récupérer le contenu du document
-    buffer = get_document_buffer(document)
+    try:
+        buffer = get_document_buffer(document)
+    except Exception as e:
+        return (
+            jsonify({"error": f"Erreur lors de la récupération du document: {str(e)}"}),
+            500,
+        )
+
     if not buffer:
         return jsonify({"error": "Impossible de récupérer le contenu du document"}), 404
 
@@ -567,34 +633,16 @@ def generate_quiz(document_id):
         num_questions = min(int(data.get("num_questions", 10)), 20)
         themes = data.get("themes", [])
 
-        # Lire le contenu du fichier avec gestion des erreurs d'encodage et support PDF
-        content = ""
+        if not content or not content.strip():
+            return (
+                jsonify(
+                    {"error": "Impossible de lire le fichier ou le document est vide"}
+                ),
+                400,
+            )
 
-        # Vérifier si c'est un fichier PDF
-        if document.file_path.lower().endswith(".pdf"):
-            try:
-                import PyPDF2
-
-                with open(document.file_path, "rb") as f:
-                    pdf_reader = PyPDF2.PdfReader(f)
-                    for page in pdf_reader.pages:
-                        content += page.extract_text() + "\n"
-            except Exception as e:
-                logger.error(f"Erreur lors de la lecture du PDF: {str(e)}")
-                return (
-                    jsonify({"error": "Erreur lors de la lecture du fichier PDF"}),
-                    400,
-                )
-        else:
-            # Pour les fichiers texte
-            for encoding in ["utf-8", "latin-1", "cp1252"]:
-                try:
-                    with open(document.file_path, "r", encoding=encoding) as f:
-                        content = f.read()
-                    if content.strip():
-                        break
-                except UnicodeDecodeError:
-                    continue
+        # Nettoyer le contenu pour éliminer les caractères non imprimables
+        content = " ".join(content.split())
 
         if not content or not content.strip():
             return (
@@ -625,6 +673,11 @@ def generate_quiz(document_id):
 
         # Générer les questions avec Gemini
         prompt = f"""
+        IMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide. 
+        Ne commence PAS par du texte, salutations ou explications.
+        Ne mets PAS le JSON dans un bloc markdown (pas de ```json).
+        Retourne DIRECTEMENT l'objet JSON brut.
+
         Génère un quiz basé sur le contenu suivant:
         - Types de questions: {', '.join(question_types)}
         - Difficulté: {difficulty}
@@ -634,7 +687,7 @@ def generate_quiz(document_id):
         Contenu du document:
         {content[:10000]}  # Limiter la taille pour éviter les tokens excessifs
 
-        Format de sortie attendu (JSON):
+        Format de sortie EXACT (UNIQUEMENT ce JSON):
         {{
             "questions": [
                 {{
@@ -647,6 +700,8 @@ def generate_quiz(document_id):
                 ...
             ]
         }}
+        
+        RAPPEL: Commence ta réponse par {{ et termine par }}.
         """
 
         try:
@@ -654,7 +709,7 @@ def generate_quiz(document_id):
             logger.info(
                 f"Envoi de la requête à Gemini avec le prompt: {prompt[:200]}..."
             )
-            response = gemini.generate_response(prompt)
+            response = gemini.generate_response(prompt, use_system_prompt=False)
             logger.info(f"Réponse brute de Gemini: {response}")
 
             if not response.get("success"):
@@ -1635,6 +1690,41 @@ def progress_tracking():
     # Récupérer les sujets les plus étudiés
     subjects = progress.subjects_progress if progress.subjects_progress else {}
 
+    # Récupérer les quiz récents avec leurs détails
+    recent_quizzes = []
+    for attempt in completed_quizzes[:5]:  # Limiter aux 5 derniers
+        quiz = attempt.quiz
+        if quiz:
+            # Calculer le score
+            total_questions = QuizQuestion.query.filter_by(quiz_id=quiz.id).count()
+            correct_answers = QuizResponse.query.filter_by(
+                attempt_id=attempt.id, is_correct=True
+            ).count()
+            score = (
+                round((correct_answers / total_questions * 100), 1)
+                if total_questions > 0
+                else 0
+            )
+
+            # Calculer le temps passé (placeholder)
+            time_spent = 0
+            if attempt.completed_at and attempt.started_at:
+                time_diff = attempt.completed_at - attempt.started_at
+                time_spent = int(time_diff.total_seconds() / 60)  # en minutes
+
+            recent_quizzes.append(
+                {
+                    "name": quiz.title,
+                    "topic": quiz.quiz_type if quiz.quiz_type else "Quiz",
+                    "score": score,
+                    "completed_at": attempt.completed_at,
+                    "time_spent": time_spent if time_spent > 0 else 5,  # Minimum 5 min
+                }
+            )
+
+    # Placeholder pour les objectifs (à implémenter plus tard)
+    goals = []
+
     return render_template(
         "study_buddy/progress.html",
         progress=progress,
@@ -1642,6 +1732,8 @@ def progress_tracking():
         chart_data=json.dumps(chart_data),
         subjects=subjects,
         stats=stats,  # Ajout des statistiques
+        recent_quizzes=recent_quizzes,  # Ajout des quiz récents
+        goals=goals,  # Ajout des objectifs
     )
 
 
@@ -1663,3 +1755,55 @@ def init_app(app):
             progress = StudyProgress.get_or_create(current_user.id)
             context["progress"] = progress
         return context
+
+
+@study_buddy_bp.route("/documents/<int:document_id>/delete", methods=["POST"])
+@login_required
+def delete_document(document_id):
+    """
+    Supprimer un document.
+    """
+    document = StudyDocument.query.get_or_404(document_id)
+    if document.user_id != current_user.id:
+        flash("Accès non autorisé", "error")
+        return redirect(url_for("study_buddy.index"))
+
+    # Supprimer fichier local si existe
+    if not document.file_path.startswith(("http://", "https://")) and os.path.exists(
+        document.file_path
+    ):
+        try:
+            os.remove(document.file_path)
+        except Exception as e:
+            current_app.logger.error(f"Erreur suppression fichier local: {e}")
+
+    db.session.delete(document)
+    db.session.commit()
+    flash("Document supprimé avec succès.", "success")
+    return redirect(url_for("study_buddy.index"))
+
+
+@study_buddy_bp.route("/documents/<int:document_id>/edit", methods=["POST"])
+@login_required
+def edit_document(document_id):
+    """
+    Modifier les métadonnées d'un document.
+    """
+    document = StudyDocument.query.get_or_404(document_id)
+    if document.user_id != current_user.id:
+        return jsonify({"success": False, "error": "Accès non autorisé"}), 403
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    if title:
+        document.title = title
+
+    if description is not None:
+        # Met à jour la description dans content_metadata
+        metadata = document.content_metadata or {}
+        metadata["description"] = description
+        document.content_metadata = metadata
+
+    db.session.commit()
+    return jsonify({"success": True})
