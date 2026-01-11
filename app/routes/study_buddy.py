@@ -1538,6 +1538,38 @@ def flashcard_deck():
     )
 
 
+@study_buddy_bp.route("/flashcards/review")
+@login_required
+def flashcards_review():
+    progress = StudyProgress.get_or_create(current_user.id)
+    due_flashcards = Flashcard.get_due_cards(current_user.id, limit=50)
+
+    if not due_flashcards:
+        due_flashcards = (
+            Flashcard.query.filter_by(user_id=current_user.id)
+            .order_by(Flashcard.updated_at.desc())
+            .limit(20)
+            .all()
+        )
+
+    flashcards_data = [
+        {
+            "id": c.id,
+            "front": c.front_text,
+            "back": c.back_text,
+            "status": c.status,
+        }
+        for c in due_flashcards
+    ]
+
+    return render_template(
+        "study_buddy/flashcards_review.html",
+        progress=progress,
+        flashcards=due_flashcards,
+        flashcards_data=flashcards_data,
+    )
+
+
 @study_buddy_bp.route("/flashcards/<int:flashcard_id>/review", methods=["POST"])
 @login_required
 def review_flashcard(flashcard_id):
@@ -1579,7 +1611,7 @@ def review_flashcard(flashcard_id):
     # Mettre à jour la progression
     progress = StudyProgress.query.filter_by(user_id=current_user.id).first()
     if progress:
-        progress.update_study_time(30)  # 30 secondes par carte mémoire
+        progress.add_study_time(30)  # 30 secondes par carte mémoire
 
     return jsonify(
         {

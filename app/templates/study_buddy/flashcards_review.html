@@ -1,0 +1,371 @@
+{% extends "study_buddy/base.html" %}
+
+{% block title %}Révision - Flashcards{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-4rem)]">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Révision</h1>
+                <div class="mt-1 text-sm text-gray-600" id="counter"></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden sm:block text-sm text-gray-600" id="status"></div>
+                <a href="{{ url_for('study_buddy.flashcard_deck') }}"
+                    class="px-3 py-2 text-sm font-medium rounded-xl text-gray-700 bg-white/70 backdrop-blur border border-white/50 shadow-sm hover:bg-white/80 transition">
+                    Quitter
+                </a>
+            </div>
+        </div>
+
+        <div id="emptyState" class="hidden">
+            <div class="mx-auto max-w-xl p-8 rounded-2xl bg-white/60 backdrop-blur border border-white/60 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+                <div class="text-lg font-semibold text-gray-900">Session terminée</div>
+                <div class="mt-2 text-sm text-gray-600">Tu as revu toutes les cartes disponibles.</div>
+                <div class="mt-6">
+                    <a href="{{ url_for('study_buddy.flashcard_deck') }}"
+                        class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition">
+                        Retour aux flashcards
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="grid" class="grid gap-5 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="application/json" id="flashcardsData">{{ flashcards_data|tojson }}</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let cards;
+        try {
+            cards = JSON.parse(document.getElementById('flashcardsData')?.textContent || '[]');
+        } catch (e) {
+            console.error('Erreur parsing flashcardsData', e);
+            cards = [];
+        }
+
+        const gridEl = document.getElementById('grid');
+        const counterEl = document.getElementById('counter');
+        const statusEl = document.getElementById('status');
+        const emptyStateEl = document.getElementById('emptyState');
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s == null ? '' : String(s);
+            return div.innerHTML;
+        }
+
+        function setGlobalLoading(isLoading) {
+            document.querySelectorAll('button, a').forEach(el => {
+                if (el.tagName === 'A') return;
+                el.disabled = isLoading;
+            });
+        }
+
+        function updateHeader() {
+            counterEl.textContent = `${cards.length} carte${cards.length > 1 ? 's' : ''} à réviser`;
+            if (statusEl) statusEl.textContent = '';
+        }
+
+        function showEmptyIfNeeded() {
+            const isEmpty = cards.length === 0;
+            if (emptyStateEl) emptyStateEl.classList.toggle('hidden', !isEmpty);
+            if (gridEl) gridEl.classList.toggle('hidden', isEmpty);
+        }
+
+        function createCardEl(card) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flip-card';
+            wrapper.dataset.cardId = String(card.id);
+            wrapper.innerHTML = `
+                <div class="flip-inner">
+                    <div class="card-overlay" aria-hidden="true">
+                        <div class="spinner" aria-label="Chargement"></div>
+                    </div>
+                    <div class="flip-face flip-front">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="text-xs font-semibold tracking-wide text-gray-700/80">Question</div>
+                            <div class="badge">Cliquer pour retourner</div>
+                        </div>
+                        <div class="mt-4 text-base sm:text-lg font-semibold text-gray-900 whitespace-pre-wrap">${escapeHtml(card.front)}</div>
+                        <div class="mt-6 flex items-center justify-between gap-3">
+                            <button type="button" class="flipBtn px-4 py-2 rounded-xl text-sm font-semibold text-gray-900/90 bg-white/50 hover:bg-white/65 transition">
+                                Voir la réponse
+                            </button>
+                            <div class="text-xs text-gray-600/80">${escapeHtml(card.status || '')}</div>
+                        </div>
+                    </div>
+                    <div class="flip-face flip-back">
+                        <div class="flex items-start justify-center">
+                            <div class="text-xs md:text-xl font-semibold tracking-wide text-gray-700/80">Réponse</div>
+                        </div>
+                        <div class="mt-4 text-sm sm:text-base text-gray-800 whitespace-pre-wrap">${escapeHtml(card.back)}</div>
+                        <div class="mt-6">
+                            <div class="text-sm font-semibold text-gray-800">Ta note</div>
+                            <div class="mt-3 grid grid-cols-3 gap-2">
+                                <button type="button" data-quality="0" class="qBtn q0">0</button>
+                                <button type="button" data-quality="2" class="qBtn q2">2</button>
+                                <button type="button" data-quality="3" class="qBtn q3">3</button>
+                                <button type="button" data-quality="4" class="qBtn q4">4</button>
+                                <button type="button" data-quality="5" class="qBtn q5">5</button>
+                                <button type="button" data-quality="1" class="qBtn q1">1</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return wrapper;
+        }
+
+        function setCardLoading(cardId, isLoading) {
+            if (!gridEl) return;
+            const el = gridEl.querySelector(`.flip-card[data-card-id="${String(cardId)}"]`);
+            if (!el) return;
+
+            el.classList.toggle('is-loading', isLoading);
+            el.querySelectorAll('button').forEach(b => b.disabled = isLoading);
+        }
+
+        function renderGrid() {
+            if (!gridEl) return;
+            gridEl.innerHTML = '';
+
+            cards.forEach((card) => {
+                const el = createCardEl(card);
+                gridEl.appendChild(el);
+            });
+
+            updateHeader();
+            showEmptyIfNeeded();
+        }
+
+        function findCardById(cardId) {
+            const idNum = parseInt(cardId, 10);
+            return cards.find(c => c.id === idNum);
+        }
+
+        function removeCardById(cardId) {
+            const idNum = parseInt(cardId, 10);
+            cards = cards.filter(c => c.id !== idNum);
+            const el = gridEl?.querySelector(`.flip-card[data-card-id="${String(idNum)}"]`);
+            if (el) {
+                el.classList.add('is-removed');
+                setTimeout(() => el.remove(), 250);
+            }
+            updateHeader();
+            showEmptyIfNeeded();
+        }
+
+        async function submitReview(cardId, quality) {
+            const card = findCardById(cardId);
+            if (!card) return;
+
+            setGlobalLoading(true);
+            setCardLoading(card.id, true);
+            try {
+                const url = `{{ url_for('study_buddy.review_flashcard', flashcard_id=0) }}`.replace('/0/review', `/${card.id}/review`);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ quality })
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || payload?.success !== true) {
+                    throw new Error(payload?.error || 'Erreur lors de la révision');
+                }
+
+                removeCardById(card.id);
+            } catch (e) {
+                alert(e.message || 'Erreur lors de la révision');
+            } finally {
+                setCardLoading(card.id, false);
+                setGlobalLoading(false);
+            }
+        }
+
+        if (gridEl) {
+            gridEl.addEventListener('click', function (e) {
+                const cardEl = e.target.closest('.flip-card');
+                if (!cardEl) return;
+
+                const cardId = cardEl.dataset.cardId;
+                const isQBtn = e.target.closest('.qBtn');
+                const isFlipBtn = e.target.closest('.flipBtn');
+                const isFlipBackBtn = e.target.closest('.flipBackBtn');
+
+                if (isQBtn) {
+                    const q = parseInt(isQBtn.getAttribute('data-quality'), 10);
+                    submitReview(cardId, q);
+                    return;
+                }
+
+                if (isFlipBackBtn) {
+                    cardEl.classList.remove('is-flipped');
+                    return;
+                }
+
+                if (isFlipBtn || e.target.closest('.flip-face')) {
+                    cardEl.classList.toggle('is-flipped');
+                }
+            });
+        }
+
+        renderGrid();
+    });
+</script>
+<style>
+    .flip-card {
+        perspective: 1200px;
+        transform: translateZ(0);
+    }
+
+    .flip-inner {
+        position: relative;
+        width: 100%;
+        min-height: 260px;
+        transform-style: preserve-3d;
+        transition: transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .flip-card.is-flipped .flip-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flip-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow:
+            0 18px 55px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    .flip-front {
+        transform: rotateY(0deg);
+    }
+
+    .flip-back {
+        transform: rotateY(180deg);
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow:
+            0 22px 70px rgba(0, 0, 0, 0.10),
+            inset 10px 10px 20px rgba(0, 0, 0, 0.06),
+            inset -10px -10px 20px rgba(255, 255, 255, 0.60);
+    }
+
+    .flip-card:hover .flip-face {
+        box-shadow:
+            0 22px 70px rgba(0, 0, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.60),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(17, 24, 39, 0.75);
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow:
+            6px 6px 14px rgba(0, 0, 0, 0.08),
+            -6px -6px 14px rgba(255, 255, 255, 0.60);
+    }
+
+    .qBtn {
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-weight: 800;
+        font-size: 14px;
+        color: rgba(17, 24, 39, 0.9);
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow:
+            10px 10px 20px rgba(0, 0, 0, 0.08),
+            -10px -10px 22px rgba(255, 255, 255, 0.65);
+        transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    }
+
+    .qBtn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.68);
+        box-shadow:
+            14px 14px 26px rgba(0, 0, 0, 0.10),
+            -14px -14px 28px rgba(255, 255, 255, 0.70);
+    }
+
+    .qBtn:active {
+        transform: translateY(0);
+        box-shadow:
+            inset 8px 8px 16px rgba(0, 0, 0, 0.10),
+            inset -8px -8px 16px rgba(255, 255, 255, 0.75);
+    }
+
+    .q0 { background: rgba(248, 113, 113, 0.20); }
+    .q1 { background: rgba(251, 113, 133, 0.18); }
+    .q2 { background: rgba(248, 113, 113, 0.14); }
+    .q3 { background: rgba(250, 204, 21, 0.16); }
+    .q4 { background: rgba(34, 197, 94, 0.14); }
+    .q5 { background: rgba(34, 197, 94, 0.18); }
+
+    .flip-card.is-removed {
+        opacity: 0;
+        transform: scale(0.98);
+        transition: opacity 200ms ease, transform 200ms ease;
+    }
+
+    .card-overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 5;
+    }
+
+    .flip-card.is-loading .card-overlay {
+        display: flex;
+    }
+
+    .spinner {
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        border: 4px solid rgba(59, 130, 246, 0.18);
+        border-top-color: rgba(59, 130, 246, 0.95);
+        animation: spin 900ms linear infinite;
+        box-shadow:
+            10px 10px 20px rgba(0, 0, 0, 0.10),
+            -10px -10px 22px rgba(255, 255, 255, 0.70);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
