@@ -1,0 +1,10 @@
+# DEFITECH Ignore File
+node_modules/
+.git/
+.vscode/
+dist/
+out/
+build/
+.env
+__pycache__/
+*.log
