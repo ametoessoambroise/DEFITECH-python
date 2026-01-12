@@ -230,6 +230,21 @@ class IntelitechToolsRegistry:
         security_level="warning"
     )
 
+    APPLY_PATCH = ToolDefinition(
+        name="apply_patch",
+        category=ToolCategory.FILE_WRITE,
+        description="Applique un patch (unified diff) sur un fichier de manière atomique et robuste",
+        parameters={
+            "file_path": {"type": "string", "required": True, "description": "Fichier cible à patcher (ex: 'src/app.py')"},
+            "patch": {"type": "string", "required": True, "description": "Patch au format unified diff (contient des hunks @@ ... @@)"}
+        },
+        example={
+            "file_path": "src/app.py",
+            "patch": "@@ -1,1 +1,1 @@\n-print('hi')\n+print('hello')"
+        },
+        security_level="dangerous"
+    )
+
     # ========================================
     # OUTILS SYSTÈME ET TERMINAL
     # ========================================
@@ -270,9 +285,61 @@ class IntelitechToolsRegistry:
         security_level="safe"
     )
 
+    RUN_COMMAND = ToolDefinition(
+        name="run_command",
+        category=ToolCategory.SYSTEM,
+        description="Exécute une commande système (wrapper de bash avec paramètres style Cascade).",
+        parameters={
+            "CommandLine": {"type": "string", "required": True, "description": "Commande à exécuter"},
+            "Cwd": {"type": "string", "required": False, "description": "Répertoire de travail (relatif au workspace)"},
+            "Blocking": {"type": "boolean", "required": False, "description": "true = attendre la fin, false = exécution async"},
+            "SafeToAutoRun": {"type": "boolean", "required": False, "description": "Indication de sécurité (la policy finale dépend du setting toolExecutionMode)"},
+            "WaitMsBeforeAsync": {"type": "number", "required": False, "description": "Compatibilité (non utilisé actuellement côté extension)"}
+        },
+        example={
+            "CommandLine": "npm run dev",
+            "Cwd": ".",
+            "Blocking": False,
+            "SafeToAutoRun": False
+        },
+        security_level="dangerous"
+    )
+
+    READ_TERMINAL = ToolDefinition(
+        name="read_terminal",
+        category=ToolCategory.SYSTEM,
+        description="Lit la sortie d'une commande lancée via bash/run_command. Limitation: ne lit pas un terminal VS Code arbitraire.",
+        parameters={
+            "Name": {"type": "string", "required": False, "description": "Nom/filtre (best-effort, match dans commandLine)"},
+            "ProcessID": {"type": "string", "required": False, "description": "ID retourné par bash/run_command (command_id)"},
+            "OutputCharacterCount": {"type": "number", "required": False, "description": "Nombre de caractères à retourner (défaut: 4000)"}
+        },
+        example={
+            "ProcessID": "cmd_123456",
+            "OutputCharacterCount": 2000
+        },
+        security_level="safe"
+    )
+
+
     # ========================================
     # OUTILS WEB ET RÉSEAU
     # ========================================
+
+    BROWSER_PREVIEW = ToolDefinition(
+        name="browser_preview",
+        category=ToolCategory.WEB,
+        description="Ouvre une URL dans le navigateur de l'utilisateur (utile pour prévisualiser un serveur local ou une page web)",
+        parameters={
+            "url": {"type": "string", "required": True, "description": "URL à ouvrir (http/https), ex: 'http://localhost:3000'"},
+            "name": {"type": "string", "required": False, "description": "Nom court (optionnel) pour décrire la preview"},
+        },
+        example={
+            "url": "http://localhost:3000",
+            "name": "Dev Server"
+        },
+        security_level="warning"
+    )
 
     MCP_FETCH = ToolDefinition(
         name="mcp0_fetch",
@@ -398,12 +465,16 @@ class IntelitechToolsRegistry:
             cls.MULTI_EDIT,
             cls.EDIT_NOTEBOOK,
             cls.WRITE_TO_FILE,
+            cls.APPLY_PATCH,
             # Système
             cls.BASH,
             cls.COMMAND_STATUS,
+            cls.RUN_COMMAND,
+            cls.READ_TERMINAL,
             # Web
             cls.MCP_FETCH,
             cls.SEARCH_WEB,
+            cls.BROWSER_PREVIEW,
             # Mémoire
             cls.CREATE_MEMORY,
             # Tâches
@@ -437,7 +508,7 @@ class IntelitechToolsRegistry:
             "⚠️ IMPORTANT: Ces outils sont exécutés LOCALEMENT sur la machine de l'utilisateur.",
             "Format de demande: [INTELLITECH_TOOL: nom_outil, {paramètres_json}]",
             "L'extension VS Code exécutera l'outil et renverra les résultats dans la prochaine requête.",
-            "",
+            ""
         ]
 
         # Grouper par catégorie
@@ -486,7 +557,6 @@ class IntelitechToolsRegistry:
 
                 # Exemple pratique
                 import json
-                example_str = json.dumps(tool.example, indent=2, ensure_ascii=False)
                 doc_lines.append("**Exemple d'utilisation:**")
                 doc_lines.append("```")
                 example_request = json.dumps(tool.example, ensure_ascii=False)
@@ -512,9 +582,9 @@ class IntelitechToolsRegistry:
         doc_lines.append("   → Attends les résultats avant de demander un autre outil")
         doc_lines.append("")
         doc_lines.append("4️⃣ Gestion de la sécurité:")
-        doc_lines.append("   → ✅ Safe: Exécution automatique sans risque")
-        doc_lines.append("   → ⚠️ Warning: Modifications de fichiers (demander confirmation)")
-        doc_lines.append("   → 🔴 Dangerous: Commandes système (toujours demander confirmation)")
+        doc_lines.append("   → ✅ Safe: Exécution automatique")
+        doc_lines.append("   → ⚠️ Warning: Exécution automatique (par défaut), sauf si l'utilisateur a configuré une policy plus stricte")
+        doc_lines.append("   → 🔴 Dangerous: Demande de confirmation (par défaut), sauf si mode 'auto_run'")
         doc_lines.append("")
 
         return "\n".join(doc_lines)
