@@ -52,16 +52,15 @@ class IntelitechToolsRegistry:
     READ_FILE = ToolDefinition(
         name="read_file",
         category=ToolCategory.FILE_READ,
-        description="Lit le contenu d'un fichier spécifique",
+        description="Affiche le contenu d'un fichier (par exemple: lire un fichier TypeScript, Python, JSON, etc.)",
         parameters={
-            "file_path": {"type": "string", "required": True, "description": "Chemin absolu du fichier"},
-            "limit": {"type": "number", "required": False, "description": "Nombre de lignes à lire"},
-            "offset": {"type": "number", "required": False, "description": "Ligne de départ (1-indexé)"}
+            "file_path": {"type": "string", "required": True, "description": "Nom du fichier à lire (exemple: 'src/main.ts' ou 'config.json')"},
+            "limit": {"type": "number", "required": False, "description": "Nombre maximum de lignes à afficher (utile pour les gros fichiers)"},
+            "offset": {"type": "number", "required": False, "description": "Commencer à partir de quelle ligne (par défaut: ligne 1)"}
         },
         example={
-            "file_path": "c:\\Users\\LENOVO\\Desktop\\project\\src\\main.ts",
-            "limit": 50,
-            "offset": 1
+            "file_path": "src/app.py",
+            "limit": 100
         },
         security_level="safe"
     )
@@ -69,12 +68,12 @@ class IntelitechToolsRegistry:
     READ_NOTEBOOK = ToolDefinition(
         name="read_notebook",
         category=ToolCategory.FILE_READ,
-        description="Lit et analyse un fichier Jupyter Notebook (.ipynb)",
+        description="Ouvre et lit un notebook Jupyter pour voir son code et ses résultats",
         parameters={
-            "absolute_path": {"type": "string", "required": True, "description": "Chemin absolu du notebook"}
+            "absolute_path": {"type": "string", "required": True, "description": "Nom du fichier notebook (exemple: 'analysis.ipynb' ou 'data_exploration.ipynb')"}
         },
         example={
-            "absolute_path": "c:\\Users\\LENOVO\\Desktop\\project\\notebook.ipynb"
+            "absolute_path": "data_analysis.ipynb"
         },
         security_level="safe"
     )
@@ -82,12 +81,12 @@ class IntelitechToolsRegistry:
     LIST_DIR = ToolDefinition(
         name="list_dir",
         category=ToolCategory.FILE_READ,
-        description="Liste les fichiers et dossiers dans un répertoire",
+        description="Affiche la liste de tous les fichiers et dossiers dans un répertoire",
         parameters={
-            "directory_path": {"type": "string", "required": True, "description": "Chemin absolu du répertoire"}
+            "directory_path": {"type": "string", "required": True, "description": "Chemin du dossier à explorer (exemple: 'src' ou 'c:\\projet\\backend')"}
         },
         example={
-            "directory_path": "c:\\Users\\LENOVO\\Desktop\\project\\src"
+            "directory_path": "src"
         },
         security_level="safe"
     )
@@ -95,19 +94,18 @@ class IntelitechToolsRegistry:
     FIND_BY_NAME = ToolDefinition(
         name="find_by_name",
         category=ToolCategory.FILE_SEARCH,
-        description="Recherche des fichiers/dossiers par nom ou pattern",
+        description="Recherche des fichiers par leur nom (comme chercher 'tous les fichiers .tsx' ou 'config*')",
         parameters={
-            "search_directory": {"type": "string", "required": True, "description": "Répertoire de recherche"},
-            "pattern": {"type": "string", "required": True, "description": "Pattern de recherche (glob)"},
-            "type": {"type": "string", "required": False, "enum": ["file", "directory", "any"], "description": "Type de résultat"},
-            "max_depth": {"type": "number", "required": False, "description": "Profondeur max de recherche"},
-            "extensions": {"type": "array", "required": False, "items": {"type": "string"}, "description": "Extensions de fichiers à inclure"}
+            "search_directory": {"type": "string", "required": True, "description": "Dossier où chercher"},
+            "pattern": {"type": "string", "required": True, "description": "Nom ou motif à chercher (exemple: '*.py' pour tous les fichiers Python, 'test*' pour les fichiers commençant par 'test')"},
+            "type": {"type": "string", "required": False, "enum": ["file", "directory", "any"], "description": "Chercher des fichiers, des dossiers, ou les deux"},
+            "max_depth": {"type": "number", "required": False, "description": "Profondeur de recherche (1 = dossier actuel uniquement, 2 = inclure les sous-dossiers, etc.)"},
+            "extensions": {"type": "array", "required": False, "items": {"type": "string"}, "description": "Extensions de fichiers spécifiques (exemple: ['ts', 'tsx', 'js'])"}
         },
         example={
-            "search_directory": "c:\\Users\\LENOVO\\Desktop\\project",
+            "search_directory": "src",
             "pattern": "*.ts",
-            "type": "file",
-            "extensions": ["ts", "tsx"]
+            "type": "file"
         },
         security_level="safe"
     )
@@ -115,20 +113,19 @@ class IntelitechToolsRegistry:
     GREP_SEARCH = ToolDefinition(
         name="grep_search",
         category=ToolCategory.FILE_SEARCH,
-        description="Recherche avancée de texte dans les fichiers",
+        description="Recherche du texte à l'intérieur des fichiers (comme Ctrl+F dans tout le projet)",
         parameters={
-            "search_path": {"type": "string", "required": True, "description": "Chemin de recherche"},
-            "query": {"type": "string", "required": True, "description": "Texte ou regex à rechercher"},
-            "case_sensitive": {"type": "boolean", "required": False, "description": "Sensible à la casse"},
-            "fixed_strings": {"type": "boolean", "required": False, "description": "Traitement littéral (pas de regex)"},
-            "includes": {"type": "array", "required": False, "items": {"type": "string"}, "description": "Patterns de fichiers à inclure"},
-            "match_per_line": {"type": "boolean", "required": False, "description": "Afficher le contexte des matches"}
+            "search_path": {"type": "string", "required": True, "description": "Dossier où chercher"},
+            "query": {"type": "string", "required": True, "description": "Texte à rechercher (exemple: 'function login' ou 'TODO')"},
+            "case_sensitive": {"type": "boolean", "required": False, "description": "Respecter majuscules/minuscules (true) ou ignorer (false)"},
+            "fixed_strings": {"type": "boolean", "required": False, "description": "Chercher le texte exact (true) ou permettre les expressions régulières (false)"},
+            "includes": {"type": "array", "required": False, "items": {"type": "string"}, "description": "Chercher uniquement dans certains types de fichiers (exemple: ['*.py', '*.txt'])"},
+            "match_per_line": {"type": "boolean", "required": False, "description": "Afficher le contexte autour de chaque résultat"}
         },
         example={
-            "search_path": "c:\\Users\\LENOVO\\Desktop\\project\\src",
-            "query": "function.*async",
-            "includes": ["*.ts", "*.js"],
-            "match_per_line": True
+            "search_path": "src",
+            "query": "async function",
+            "includes": ["*.ts", "*.js"]
         },
         security_level="safe"
     )
@@ -140,19 +137,19 @@ class IntelitechToolsRegistry:
     EDIT = ToolDefinition(
         name="edit",
         category=ToolCategory.FILE_WRITE,
-        description="Effectue un remplacement de texte exact dans un fichier",
+        description="Remplace un morceau de code par un autre dans un fichier (comme un chercher-remplacer)",
         parameters={
-            "file_path": {"type": "string", "required": True, "description": "Chemin absolu du fichier"},
-            "old_string": {"type": "string", "required": True, "description": "Texte à remplacer (doit être exact)"},
-            "new_string": {"type": "string", "required": True, "description": "Texte de remplacement"},
-            "explanation": {"type": "string", "required": True, "description": "Description de la modification"},
-            "replace_all": {"type": "boolean", "required": False, "description": "Remplacer toutes les occurrences"}
+            "file_path": {"type": "string", "required": True, "description": "Fichier à modifier"},
+            "old_string": {"type": "string", "required": True, "description": "Code actuel à remplacer (doit être exactement identique)"},
+            "new_string": {"type": "string", "required": True, "description": "Nouveau code à mettre à la place"},
+            "explanation": {"type": "string", "required": True, "description": "Explication de pourquoi tu fais cette modification"},
+            "replace_all": {"type": "boolean", "required": False, "description": "Remplacer toutes les occurrences (true) ou seulement la première (false)"}
         },
         example={
-            "file_path": "c:\\Users\\LENOVO\\Desktop\\project\\src\\config.ts",
-            "old_string": "const apiUrl = 'localhost:3000'",
-            "new_string": "const apiUrl = 'https://api.example.com'",
-            "explanation": "Mise à jour de l'URL de l'API pour la production",
+            "file_path": "src/config.ts",
+            "old_string": "const port = 3000",
+            "new_string": "const port = 8080",
+            "explanation": "Changement du port pour éviter les conflits",
             "replace_all": False
         },
         security_level="warning"
@@ -161,9 +158,9 @@ class IntelitechToolsRegistry:
     MULTI_EDIT = ToolDefinition(
         name="multi_edit",
         category=ToolCategory.FILE_WRITE,
-        description="Effectue plusieurs modifications dans un seul fichier",
+        description="Fait plusieurs modifications dans le même fichier en une seule fois",
         parameters={
-            "file_path": {"type": "string", "required": True, "description": "Chemin absolu du fichier"},
+            "file_path": {"type": "string", "required": True, "description": "Fichier à modifier"},
             "edits": {
                 "type": "array",
                 "required": True,
@@ -175,21 +172,21 @@ class IntelitechToolsRegistry:
                     },
                     "required": ["old_string", "new_string"]
                 },
-                "description": "Liste des modifications"
+                "description": "Liste de toutes les modifications à faire"
             },
-            "explanation": {"type": "string", "required": True, "description": "Description générale"}
+            "explanation": {"type": "string", "required": True, "description": "Explication globale des modifications"}
         },
         example={
-            "file_path": "c:\\Users\\LENOVO\\Desktop\\project\\src\\index.ts",
-            "explanation": "Refactorisation des imports et ajout de logging",
+            "file_path": "src/app.py",
+            "explanation": "Ajout de logging et correction du nom de variable",
             "edits": [
                 {
-                    "old_string": "import { User } from './user'",
-                    "new_string": "import { User, Logger } from './types'"
+                    "old_string": "print(data)",
+                    "new_string": "logger.info(data)"
                 },
                 {
-                    "old_string": "console.log(data)",
-                    "new_string": "logger.info(data)"
+                    "old_string": "usr_name",
+                    "new_string": "username"
                 }
             ]
         },
@@ -199,18 +196,18 @@ class IntelitechToolsRegistry:
     EDIT_NOTEBOOK = ToolDefinition(
         name="edit_notebook",
         category=ToolCategory.FILE_WRITE,
-        description="Modifie une cellule spécifique d'un notebook Jupyter",
+        description="Modifie une cellule spécifique dans un notebook Jupyter",
         parameters={
-            "absolute_path": {"type": "string", "required": True, "description": "Chemin du notebook"},
-            "cell_number": {"type": "number", "required": False, "description": "Numéro de la cellule (0-indexé)"},
-            "cell_id": {"type": "string", "required": False, "description": "ID de la cellule"},
-            "new_source": {"type": "string", "required": True, "description": "Nouveau contenu de la cellule"},
-            "edit_mode": {"type": "string", "required": False, "enum": ["replace", "insert", "delete"], "description": "Mode d'édition"}
+            "absolute_path": {"type": "string", "required": True, "description": "Nom du notebook"},
+            "cell_number": {"type": "number", "required": False, "description": "Numéro de la cellule à modifier (commence à 0)"},
+            "cell_id": {"type": "string", "required": False, "description": "ID unique de la cellule (alternative au numéro)"},
+            "new_source": {"type": "string", "required": True, "description": "Nouveau code de la cellule"},
+            "edit_mode": {"type": "string", "required": False, "enum": ["replace", "insert", "delete"], "description": "Action à faire: remplacer, insérer, ou supprimer"}
         },
         example={
-            "absolute_path": "c:\\Users\\LENOVO\\Desktop\\project\\analysis.ipynb",
-            "cell_number": 2,
-            "new_source": "import pandas as pd\nimport numpy as np\n\ndf = pd.read_csv('data.csv')",
+            "absolute_path": "analysis.ipynb",
+            "cell_number": 0,
+            "new_source": "import pandas as pd\nimport numpy as np",
             "edit_mode": "replace"
         },
         security_level="warning"
@@ -221,13 +218,13 @@ class IntelitechToolsRegistry:
         category=ToolCategory.FILE_WRITE,
         description="Crée un nouveau fichier avec du contenu",
         parameters={
-            "target_file": {"type": "string", "required": True, "description": "Chemin du fichier à créer"},
-            "code_content": {"type": "string", "required": True, "description": "Contenu du fichier"},
-            "empty_file": {"type": "boolean", "required": True, "description": "false pour ajouter du contenu"}
+            "target_file": {"type": "string", "required": True, "description": "Nom et emplacement du fichier à créer (exemple: 'src/utils.py')"},
+            "code_content": {"type": "string", "required": True, "description": "Tout le contenu à mettre dans le fichier"},
+            "empty_file": {"type": "boolean", "required": True, "description": "false pour ajouter du contenu, true pour créer un fichier vide"}
         },
         example={
-            "target_file": "src/utils/helper.ts",
-            "code_content": "export function formatDate(date: Date): string {\n  return date.toISOString();\n}",
+            "target_file": "src/helpers.py",
+            "code_content": "def hello():\n    print('Hello World!')",
             "empty_file": False
         },
         security_level="warning"
@@ -240,17 +237,17 @@ class IntelitechToolsRegistry:
     BASH = ToolDefinition(
         name="bash",
         category=ToolCategory.SYSTEM,
-        description="Exécute des commandes shell/terminal",
+        description="Exécute une commande dans le terminal (comme 'npm install', 'python script.py', 'git status', etc.)",
         parameters={
-            "command_line": {"type": "string", "required": True, "description": "Commande à exécuter"},
-            "cwd": {"type": "string", "required": True, "description": "Répertoire de travail"},
-            "background": {"type": "boolean", "required": False, "description": "Exécution en arrière-plan"},
-            "safe_to_auto_run": {"type": "boolean", "required": False, "description": "Exécution automatique sans confirmation"},
-            "wait_ms_before_async": {"type": "number", "required": False, "description": "Délai avant mode async"}
+            "command_line": {"type": "string", "required": True, "description": "Commande à exécuter (exemple: 'npm run dev', 'pip install requests')"},
+            "cwd": {"type": "string", "required": True, "description": "Dossier où exécuter la commande"},
+            "background": {"type": "boolean", "required": False, "description": "Exécuter en arrière-plan (true) pour les commandes longues"},
+            "safe_to_auto_run": {"type": "boolean", "required": False, "description": "Peut s'exécuter automatiquement (true) ou demander confirmation (false)"},
+            "wait_ms_before_async": {"type": "number", "required": False, "description": "Temps d'attente en millisecondes avant mode asynchrone"}
         },
         example={
             "command_line": "npm install",
-            "cwd": "c:\\Users\\LENOVO\\Desktop\\project",
+            "cwd": ".",
             "safe_to_auto_run": False
         },
         security_level="dangerous"
@@ -259,11 +256,11 @@ class IntelitechToolsRegistry:
     COMMAND_STATUS = ToolDefinition(
         name="command_status",
         category=ToolCategory.SYSTEM,
-        description="Vérifie le statut d'une commande en arrière-plan",
+        description="Vérifie l'état d'une commande qui s'exécute en arrière-plan",
         parameters={
-            "command_id": {"type": "string", "required": True, "description": "ID de la commande"},
-            "output_character_count": {"type": "number", "required": True, "description": "Nombre de caractères à lire"},
-            "wait_duration_seconds": {"type": "number", "required": False, "description": "Temps d'attente max"}
+            "command_id": {"type": "string", "required": True, "description": "ID de la commande en cours"},
+            "output_character_count": {"type": "number", "required": True, "description": "Nombre de caractères de sortie à récupérer"},
+            "wait_duration_seconds": {"type": "number", "required": False, "description": "Temps d'attente maximum en secondes"}
         },
         example={
             "command_id": "cmd_123456",
@@ -280,15 +277,15 @@ class IntelitechToolsRegistry:
     MCP_FETCH = ToolDefinition(
         name="mcp0_fetch",
         category=ToolCategory.WEB,
-        description="Récupère le contenu d'une URL web",
+        description="Télécharge le contenu d'une page web (documentation, article, etc.)",
         parameters={
-            "url": {"type": "string", "required": True, "description": "URL à récupérer"},
-            "max_length": {"type": "number", "required": False, "description": "Taille max du contenu"},
-            "raw": {"type": "boolean", "required": False, "description": "HTML brut ou simplifié"},
-            "start_index": {"type": "number", "required": False, "description": "Position de départ"}
+            "url": {"type": "string", "required": True, "description": "Adresse de la page à récupérer (exemple: 'https://docs.python.org/3/')"},
+            "max_length": {"type": "number", "required": False, "description": "Taille maximale du contenu à récupérer"},
+            "raw": {"type": "boolean", "required": False, "description": "Récupérer le HTML brut (true) ou le texte simplifié (false)"},
+            "start_index": {"type": "number", "required": False, "description": "Commencer à partir de quel caractère"}
         },
         example={
-            "url": "https://example.com/documentation",
+            "url": "https://numpy.org/doc/stable/",
             "max_length": 10000,
             "raw": False
         },
@@ -298,14 +295,14 @@ class IntelitechToolsRegistry:
     SEARCH_WEB = ToolDefinition(
         name="search_web",
         category=ToolCategory.WEB,
-        description="Recherche web avec résultats",
+        description="Recherche des informations sur internet (comme utiliser Google)",
         parameters={
-            "query": {"type": "string", "required": True, "description": "Requête de recherche"},
-            "domain": {"type": "string", "required": False, "description": "Domaine à prioriser"}
+            "query": {"type": "string", "required": True, "description": "Ce que tu veux rechercher (exemple: 'comment créer une API REST en Python')"},
+            "domain": {"type": "string", "required": False, "description": "Chercher uniquement sur un site spécifique (exemple: 'stackoverflow.com')"}
         },
         example={
-            "query": "Python async await tutorial",
-            "domain": "docs.python.org"
+            "query": "FastAPI tutorial débutant",
+            "domain": "fastapi.tiangolo.com"
         },
         security_level="safe"
     )
@@ -317,22 +314,22 @@ class IntelitechToolsRegistry:
     CREATE_MEMORY = ToolDefinition(
         name="create_memory",
         category=ToolCategory.MEMORY,
-        description="Sauvegarde du contexte important",
+        description="Sauvegarde des informations importantes pour s'en souvenir plus tard (architecture du projet, décisions techniques, etc.)",
         parameters={
-            "action": {"type": "string", "required": True, "enum": ["create", "update", "delete"], "description": "Action à effectuer"},
-            "title": {"type": "string", "required": True, "description": "Titre du mémoire"},
-            "content": {"type": "string", "required": True, "description": "Contenu"},
-            "corpus_names": {"type": "array", "required": True, "items": {"type": "string"}, "description": "Espaces de travail concernés"},
-            "tags": {"type": "array", "required": True, "items": {"type": "string"}, "description": "Étiquettes"},
-            "user_triggered": {"type": "boolean", "required": True, "description": "Déclenché par l'utilisateur"},
-            "id": {"type": "string", "required": False, "description": "ID pour update/delete"}
+            "action": {"type": "string", "required": True, "enum": ["create", "update", "delete"], "description": "Action: créer une nouvelle mémoire, mettre à jour, ou supprimer"},
+            "title": {"type": "string", "required": True, "description": "Titre court de la mémoire (exemple: 'Architecture du projet')"},
+            "content": {"type": "string", "required": True, "description": "Contenu détaillé à sauvegarder"},
+            "corpus_names": {"type": "array", "required": True, "items": {"type": "string"}, "description": "Projets concernés par cette mémoire"},
+            "tags": {"type": "array", "required": True, "items": {"type": "string"}, "description": "Mots-clés pour retrouver facilement (exemple: ['react', 'typescript', 'api'])"},
+            "user_triggered": {"type": "boolean", "required": True, "description": "Est-ce que l'utilisateur a demandé de sauvegarder ça explicitement?"},
+            "id": {"type": "string", "required": False, "description": "ID de la mémoire (nécessaire pour update ou delete)"}
         },
         example={
             "action": "create",
-            "title": "Architecture du projet",
-            "content": "Le projet utilise React + TypeScript...",
-            "corpus_names": ["my-project"],
-            "tags": ["architecture", "react"],
+            "title": "Structure des dossiers",
+            "content": "Le projet suit une architecture MVC. Les routes sont dans /routes, les contrôleurs dans /controllers, et les modèles dans /models.",
+            "corpus_names": ["mon-projet-api"],
+            "tags": ["architecture", "structure"],
             "user_triggered": False
         },
         security_level="safe"
@@ -345,7 +342,7 @@ class IntelitechToolsRegistry:
     TODO_LIST = ToolDefinition(
         name="todo_list",
         category=ToolCategory.TASK,
-        description="Crée et gère des listes de tâches",
+        description="Crée ou affiche une liste de tâches à faire (todo list)",
         parameters={
             "todos": {
                 "type": "array",
@@ -360,20 +357,20 @@ class IntelitechToolsRegistry:
                     },
                     "required": ["id", "content", "status"]
                 },
-                "description": "Liste des tâches"
+                "description": "Liste des tâches avec leur statut"
             }
         },
         example={
             "todos": [
                 {
-                    "id": "task_1",
-                    "content": "Implémenter la fonction login",
+                    "id": "1",
+                    "content": "Créer la page de login",
                     "status": "pending",
                     "priority": "high"
                 },
                 {
-                    "id": "task_2",
-                    "content": "Ajouter les tests unitaires",
+                    "id": "2",
+                    "content": "Ajouter les tests",
                     "status": "in_progress",
                     "priority": "medium"
                 }
@@ -445,13 +442,13 @@ class IntelitechToolsRegistry:
 
         # Grouper par catégorie
         categories = {
-            ToolCategory.FILE_READ: "📖 OUTILS DE LECTURE DE FICHIERS",
-            ToolCategory.FILE_WRITE: "✏️ OUTILS D'ÉDITION DE FICHIERS",
-            ToolCategory.FILE_SEARCH: "🔍 OUTILS DE RECHERCHE DE FICHIERS",
-            ToolCategory.SYSTEM: "🖥️ OUTILS SYSTÈME ET TERMINAL",
-            ToolCategory.WEB: "🌐 OUTILS WEB ET RÉSEAU",
-            ToolCategory.MEMORY: "🧠 OUTILS DE GESTION DE MÉMOIRE",
-            ToolCategory.TASK: "📋 OUTILS DE GESTION DE TÂCHES",
+            ToolCategory.FILE_READ: "📖 LECTURE DE FICHIERS",
+            ToolCategory.FILE_WRITE: "✏️ MODIFICATION DE FICHIERS",
+            ToolCategory.FILE_SEARCH: "🔍 RECHERCHE DE FICHIERS",
+            ToolCategory.SYSTEM: "🖥️ COMMANDES SYSTÈME",
+            ToolCategory.WEB: "🌐 INTERNET ET WEB",
+            ToolCategory.MEMORY: "🧠 MÉMOIRE ET CONTEXTE",
+            ToolCategory.TASK: "📋 GESTION DE TÂCHES",
         }
 
         for category, category_title in categories.items():
@@ -472,7 +469,7 @@ class IntelitechToolsRegistry:
                 }.get(tool.security_level, "❓")
 
                 doc_lines.append(f"### {security_icon} `{tool.name}`")
-                doc_lines.append(f"**Description:** {tool.description}")
+                doc_lines.append(f"{tool.description}")
                 doc_lines.append("")
 
                 # Paramètres
@@ -481,44 +478,43 @@ class IntelitechToolsRegistry:
                     required = param_spec.get("required", False)
                     param_type = param_spec.get("type", "string")
                     param_desc = param_spec.get("description", "")
-                    required_mark = " (obligatoire)" if required else " (optionnel)"
-                    doc_lines.append(f"- `{param_name}` ({param_type}){required_mark}: {param_desc}")
+                    required_mark = " ✓" if required else " (optionnel)"
+                    doc_lines.append(f"  • `{param_name}` ({param_type}){required_mark}")
+                    doc_lines.append(f"    → {param_desc}")
 
                 doc_lines.append("")
 
-                # Exemple
+                # Exemple pratique
                 import json
                 example_str = json.dumps(tool.example, indent=2, ensure_ascii=False)
-                doc_lines.append("**Exemple:**")
-                doc_lines.append("```json")
-                doc_lines.append(example_str)
+                doc_lines.append("**Exemple d'utilisation:**")
+                doc_lines.append("```")
+                example_request = json.dumps(tool.example, ensure_ascii=False)
+                doc_lines.append(f"[INTELLITECH_TOOL: {tool.name}, {example_request}]")
                 doc_lines.append("```")
                 doc_lines.append("")
 
-                # Format de demande
-                doc_lines.append("**Format de demande:**")
-                example_request = json.dumps(tool.example, ensure_ascii=False)
-                doc_lines.append(f"`[INTELLITECH_TOOL: {tool.name}, {example_request}]`")
-                doc_lines.append("")
-
-        # Instructions d'utilisation
+        # Instructions d'utilisation simplifiées
         doc_lines.append("")
         doc_lines.append("=" * 80)
-        doc_lines.append("📝 INSTRUCTIONS D'UTILISATION")
+        doc_lines.append("📝 COMMENT UTILISER CES OUTILS")
         doc_lines.append("=" * 80)
         doc_lines.append("")
-        doc_lines.append("1. Détecter le besoin: Si l'utilisateur demande une action qui nécessite un outil,")
-        doc_lines.append("   inclure la demande d'outil dans ta réponse au format [INTELLITECH_TOOL: ...]")
+        doc_lines.append("1️⃣ Quand l'utilisateur demande quelque chose qui nécessite un outil:")
+        doc_lines.append("   → Inclus [INTELLITECH_TOOL: nom_outil, {paramètres}] dans ta réponse")
         doc_lines.append("")
-        doc_lines.append("2. Format strict: Le format doit être valide JSON pour les paramètres")
+        doc_lines.append("2️⃣ Format JSON strict:")
+        doc_lines.append("   → Les paramètres doivent être en JSON valide")
+        doc_lines.append("   → Exemple: [INTELLITECH_TOOL: read_file, {\"file_path\": \"src/app.py\"}]")
         doc_lines.append("")
-        doc_lines.append("3. Un seul outil par demande: Chaque [INTELLITECH_TOOL: ...] est indépendant")
+        doc_lines.append("3️⃣ Un seul outil à la fois:")
+        doc_lines.append("   → Chaque demande d'outil est indépendante")
+        doc_lines.append("   → Attends les résultats avant de demander un autre outil")
         doc_lines.append("")
-        doc_lines.append("4. Attente des résultats: L'extension exécutera l'outil et renverra les résultats")
-        doc_lines.append("   dans la prochaine requête. Tu pourras alors les utiliser dans ta réponse.")
-        doc_lines.append("")
-        doc_lines.append("5. Sécurité: Les outils avec niveau 'dangerous' (comme bash) nécessitent")
-        doc_lines.append("   une confirmation explicite de l'utilisateur avant exécution.")
+        doc_lines.append("4️⃣ Gestion de la sécurité:")
+        doc_lines.append("   → ✅ Safe: Exécution automatique sans risque")
+        doc_lines.append("   → ⚠️ Warning: Modifications de fichiers (demander confirmation)")
+        doc_lines.append("   → 🔴 Dangerous: Commandes système (toujours demander confirmation)")
         doc_lines.append("")
 
         return "\n".join(doc_lines)

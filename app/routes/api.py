@@ -236,8 +236,8 @@ def defai_chat(current_user):
         language = data.get("language")
         code = data.get("code")
         file_path = data.get("file_path", "unknown.txt")
-        project_id = data.get("project_id")
         conversation_id = data.get("conversation_id")
+        conversation_link = data.get("conversation_link")
 
         # Extraire le contexte de code
         code_context = DefaiCodeAssistantService.extract_context(
@@ -256,6 +256,16 @@ def defai_chat(current_user):
         user_role = role_mapping.get(user_role_fr, "student")
 
         # Créer ou récupérer la conversation
+        conversation = None
+        if conversation_link:
+            conversation = AIConversation.query.filter_by(link=conversation_link).first()
+            if not conversation or conversation.user_id != current_user.id:
+                return (
+                    jsonify({"success": False, "error": "Conversation non trouvée"}),
+                    404,
+                )
+            conversation_id = conversation.id
+
         if not conversation_id:
             # Créer une nouvelle conversation liée au projet si fourni
             conversation = AIConversation(
@@ -272,20 +282,13 @@ def defai_chat(current_user):
             db.session.flush()
             conversation_id = conversation.id
         else:
-            conversation = AIConversation.query.get(conversation_id)
+            if not conversation:
+                conversation = AIConversation.query.get(conversation_id)
             if not conversation or conversation.user_id != current_user.id:
                 return (
                     jsonify({"success": False, "error": "Conversation non trouvée"}),
                     404,
                 )
-
-        # Préparer le payload enrichi
-        payload = DefaiCodeAssistantService.prepare_defai_payload(
-            message=message,
-            code_context=code_context,
-            project_id=project_id,
-            user_id=current_user.id,
-        )
 
         # Sauvegarder le message utilisateur avec contexte de code
         user_message = AIMessage(
@@ -449,6 +452,7 @@ def defai_chat(current_user):
             "success": True,
             "reply": ai_response,
             "conversation_id": conversation_id,
+            "conversation_link": conversation.link if conversation else None,
             "message_id": assistant_message.id,
             "grounding_metadata": gemini_response.get("grounding_metadata", {}),
             "has_web_search": gemini_response.get("has_web_search", False),
@@ -496,7 +500,6 @@ def get_defai_conversations(current_user):
     logger = logging.getLogger(__name__)
 
     try:
-        project_id = request.args.get("project_id", type=int)
         limit = request.args.get("limit", 20, type=int)
 
         # Requête de base: conversations de l'utilisateur provenant de VS Code
@@ -504,11 +507,14 @@ def get_defai_conversations(current_user):
 
         # Filtrer par source (messages provenant de l'extension)
         # On cherche les conversations qui ont au moins un message de source vscode_extension
-        query = (
-            query.join(AIMessage)
-            .filter(AIMessage.metadata.op("->>")("source") == "vscode_extension")
-            .distinct()
-        )
+        try:
+            query = (
+                query.join(AIMessage)
+                .filter(AIMessage.extra_data.op("->>")("source") == "vscode_extension")
+                .distinct()
+            )
+        except Exception:
+            query = query.distinct()
 
         # Limiter le nombre de résultats
         conversations = (
@@ -528,6 +534,7 @@ def get_defai_conversations(current_user):
             formatted_conversations.append(
                 {
                     "id": conv.id,
+                    "link": conv.link,
                     "title": conv.title,
                     "created_at": (
                         conv.created_at.isoformat() if conv.created_at else None
