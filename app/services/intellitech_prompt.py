@@ -254,10 +254,23 @@ D'après le fichier `src/utils.ts` que je viens de lire, je vois que:
                 if success:
                     result_data = result.get("result", {})
                     # Résumer les résultats (limiter la taille)
-                    if isinstance(result_data, str) and len(result_data) > 500:
-                        sections.append(f"   Résultat: {result_data[:500]}... (tronqué)")
+                    if tool_name == "read_file" and isinstance(result_data, dict):
+                        content = result_data.get("content")
+                        total_lines = result_data.get("total_lines")
+                        if total_lines is not None:
+                            sections.append(f"   Total lignes: {total_lines}")
+                        if isinstance(content, str):
+                            max_chars = 8000
+                            if len(content) > max_chars:
+                                sections.append(f"   Contenu (extrait {max_chars} chars):\n{content[:max_chars]}\n... (tronqué)")
+                            else:
+                                sections.append(f"   Contenu:\n{content}")
+                        else:
+                            sections.append(f"   Résultat: {str(result_data)[:2000]}")
+                    elif isinstance(result_data, str) and len(result_data) > 2000:
+                        sections.append(f"   Résultat: {result_data[:2000]}... (tronqué)")
                     else:
-                        sections.append(f"   Résultat: {str(result_data)[:200]}")
+                        sections.append(f"   Résultat: {str(result_data)[:2000]}")
                 else:
                     error = result.get("error", "Erreur inconnue")
                     sections.append(f"   Erreur: {error}")
