@@ -312,6 +312,7 @@ def defai_chat(current_user):
         # Détecter si c'est une requête de l'extension VS Code avec le nouveau système
         source = data.get("source", "vscode_extension")
         tool_results = data.get("tool_results", [])
+        mentioned_files = data.get("mentioned_files", [])
         use_intellitech_system = source == "vscode_extension"
 
         # Récupérer l'historique de conversation (derniers 10 messages)
@@ -356,6 +357,7 @@ def defai_chat(current_user):
                 code_context=code_context_dict,
                 tool_results=tool_results,
                 conversation_history=messages_history,
+                mentioned_files=mentioned_files,
             )
 
             # Appeler Gemini directement avec use_system_prompt=False (déjà dans le prompt)

@@ -226,7 +226,7 @@ class IntelitechToolsRegistry:
             "empty_file": {"type": "boolean", "required": True, "description": "false pour ajouter du contenu"}
         },
         example={
-            "target_file": "c:\\Users\\LENOVO\\Desktop\\project\\src\\utils\\helper.ts",
+            "target_file": "src/utils/helper.ts",
             "code_content": "export function formatDate(date: Date): string {\n  return date.toISOString();\n}",
             "empty_file": False
         },

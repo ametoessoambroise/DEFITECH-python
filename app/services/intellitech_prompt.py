@@ -85,7 +85,16 @@ Tu as accès à des outils qui s'exécutent LOCALEMENT sur leur machine."""
    - Valider toujours les chemins avant toute opération sur fichiers
    - Ne jamais suggérer d'opérations qui pourraient compromettre la sécurité
 
-3. **Confidentialité:**
+3. **Contraintes d'exécution des outils (VS Code):**
+   - Tous les chemins de fichiers/répertoires utilisés par les outils doivent être **dans le workspace VS Code ouvert**
+   - Préfère des chemins **relatifs au workspace** (ex: `src/hello.py`) plutôt que des chemins absolus
+   - Ne tente pas d'écrire dans `C:\\Users\\...` hors projet : l'extension refusera le chemin
+
+4. **Fiabilité des actions:**
+   - Si l'utilisateur demande "Hello World", n'ajoute pas de dépendances externes (ex: matplotlib) sans demande explicite
+   - Reste minimal et exécutable, puis propose des extensions (graphes, libs) en option
+
+5. **Confidentialité:**
    - Ne jamais partager des informations d'un projet avec un autre
    - Respecter la propriété intellectuelle du code analysé"""
 
@@ -210,6 +219,7 @@ D'après le fichier `src/utils.ts` que je viens de lire, je vois que:
     def build_context_section(
         code_context: Optional[Dict] = None,
         tool_results: Optional[List[Dict]] = None,
+        mentioned_files: Optional[List[str]] = None,
     ) -> str:
         """
         Construit la section contexte pour enrichir le prompt.
@@ -254,6 +264,15 @@ D'après le fichier `src/utils.ts` que je viens de lire, je vois que:
             sections.append("")
             sections.append("**INSTRUCTIONS:** Utilise ces résultats dans ta réponse pour fournir une analyse complète.")
             sections.append("")
+
+        if mentioned_files:
+            sections.append("**FICHIERS/DOSSIERS MENTIONNÉS PAR L'UTILISATEUR:**")
+            for p in mentioned_files[:30]:
+                sections.append(f"- `{p}`")
+            sections.append("")
+            sections.append("**INSTRUCTIONS:** Si l'utilisateur mentionne un fichier, lis-le avec l'outil `read_file` avant de répondre. ")
+            sections.append("Si un dossier est mentionné, utilise `find_by_name` ou `list_dir` pour localiser les fichiers pertinents.")
+            sections.append("")
         
         return "\n".join(sections) if sections else ""
 
@@ -263,6 +282,7 @@ D'après le fichier `src/utils.ts` que je viens de lire, je vois que:
         code_context: Optional[Dict] = None,
         tool_results: Optional[List[Dict]] = None,
         conversation_history: Optional[List[Dict]] = None,
+        mentioned_files: Optional[List[str]] = None,
     ) -> str:
         """
         Construit le prompt complet pour une requête Intelitech.
@@ -282,7 +302,7 @@ D'après le fichier `src/utils.ts` que je viens de lire, je vois que:
         parts.append(IntelitechPromptBuilder.build_system_prompt())
         
         # 2. Section contexte
-        context_section = IntelitechPromptBuilder.build_context_section(code_context, tool_results)
+        context_section = IntelitechPromptBuilder.build_context_section(code_context, tool_results, mentioned_files)
         if context_section:
             parts.append("=" * 80)
             parts.append(context_section)
