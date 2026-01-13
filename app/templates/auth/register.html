@@ -79,7 +79,7 @@
         Remplissez vos informations pour vous inscrire
       </p>
 
-      <form method="POST" class="space-y-4">
+      <form method="POST" action="url_for('auth.register')" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
         <!-- Nom et Prénom -->
@@ -657,7 +657,7 @@
           Inscription
         </h2>
 
-        <form method="POST" class="space-y-3">
+        <form method="POST" action="url_for('auth.register')" class="space-y-3">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
           <!-- Informations de base -->
