@@ -559,7 +559,8 @@ def get_defai_conversations(current_user):
         }
     """
     from app.models.ai_assistant import AIConversation, AIMessage
-    from sqlalchemy import desc
+    from sqlalchemy import desc, select, func
+    from app.extensions import db
     import logging
 
     logger = logging.getLogger(__name__)
@@ -567,23 +568,24 @@ def get_defai_conversations(current_user):
     try:
         limit = request.args.get("limit", 20, type=int)
 
-        # Requête de base: conversations de l'utilisateur provenant de VS Code
-        query = AIConversation.query.filter_by(user_id=current_user.id)
-
-        # Filtrer par source (messages provenant de l'extension)
-        # On cherche les conversations qui ont au moins un message de source vscode_extension
-        try:
-            query = (
-                query.join(AIMessage)
-                .filter(AIMessage.extra_data.op("->>")("source") == "vscode_extension")
-                .distinct()
+        conv_ids_subq = (
+            db.session.query(
+                AIConversation.id.label("id"),
+                func.max(AIConversation.created_at).label("created_at"),
             )
-        except Exception:
-            query = query.distinct()
+            .join(AIMessage, AIConversation.id == AIMessage.conversation_id)
+            .filter(AIConversation.user_id == current_user.id)
+            .filter(AIMessage.extra_data.op("->>")("source") == "vscode_extension")
+            .group_by(AIConversation.id)
+            .order_by(desc(func.max(AIConversation.created_at)))
+            .limit(limit)
+            .subquery()
+        )
 
-        # Limiter le nombre de résultats
         conversations = (
-            query.order_by(desc(AIConversation.created_at)).limit(limit).all()
+            AIConversation.query.filter(AIConversation.id.in_(select(conv_ids_subq.c.id)))
+            .order_by(desc(AIConversation.created_at))
+            .all()
         )
 
         # Formater les conversations
