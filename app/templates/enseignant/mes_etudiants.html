@@ -132,17 +132,49 @@ current_user.prenom }} | Mes étudiants{% endblock %} {% block content %}
   <div
     class="bg-white shadow-md rounded-xl border border-gray-100 overflow-hidden"
   >
+    {% if filieres_enseignees and annees_enseignees %}
+    <div class="px-6 py-4 border-b border-gray-200 bg-white">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="filter-annee" class="block text-sm font-medium text-gray-700 mb-2">Année</label>
+          <select
+            id="filter-annee"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Toutes les années</option>
+            {% for a in annees_enseignees %}
+            <option value="{{ a }}" {% if selected_annee and selected_annee == a %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="filter-filiere" class="block text-sm font-medium text-gray-700 mb-2">Filière</label>
+          <select
+            id="filter-filiere"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Toutes les filières</option>
+            {% for f in filieres_enseignees %}
+            <option value="{{ f }}" {% if selected_filiere and selected_filiere == f %}selected{% endif %}>{{ f }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     {% if etudiants_data %}
     <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
       <h3 class="text-lg font-semibold text-gray-900">
         Liste des étudiants
         <span class="text-gray-500 font-normal"
-          >({{ etudiants_data|length }})</span
+          ><span id="students-count">({{ etudiants_data|length }})</span></span
         >
       </h3>
     </div>
 
-    <ul class="divide-y divide-gray-200">
+    <div id="students-list-container">
+    <ul id="students-list" class="divide-y divide-gray-200">
       {% for user, etudiant in etudiants_data %}
       <li class="px-6 py-5 hover:bg-gray-50 transition-colors">
         <div class="flex items-center justify-between">
@@ -241,8 +273,9 @@ current_user.prenom }} | Mes étudiants{% endblock %} {% block content %}
       </li>
       {% endfor %}
     </ul>
-    {% else %}
-    <div class="px-6 py-16 text-center">
+    </div>
+
+    <div id="students-empty" class="px-6 py-16 text-center {% if etudiants_data %}hidden{% endif %}">
       <div
         class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
       >
@@ -256,6 +289,8 @@ current_user.prenom }} | Mes étudiants{% endblock %} {% block content %}
         %}
       </p>
     </div>
+    {% else %}
+    <div id="students-list-container"></div>
     {% endif %}
   </div>
 
@@ -668,8 +703,9 @@ current_user.prenom }} | Mes étudiants{% endblock %} {% block content %}
     document.addEventListener("DOMContentLoaded", mettreAJourToggles);
 
     // Gestion des toggles de présence avec amélioration
-    document.querySelectorAll(".presence-toggle").forEach(function (toggle) {
-      toggle.addEventListener("change", async function (e) {
+    function bindPresenceToggles() {
+      document.querySelectorAll(".presence-toggle").forEach(function (toggle) {
+        toggle.addEventListener("change", async function (e) {
         // Vérifier à nouveau le créneau avant d'envoyer
         const matiereId = parseInt(
           e.target.getAttribute("data-matiere-id"),
@@ -747,8 +783,115 @@ current_user.prenom }} | Mes étudiants{% endblock %} {% block content %}
           // Réactiver le toggle
           e.target.disabled = false;
         }
+        });
       });
-    });
+    }
+
+    bindPresenceToggles();
+
+    async function reloadStudents() {
+      const annee = document.getElementById('filter-annee')?.value || '';
+      const filiere = document.getElementById('filter-filiere')?.value || '';
+
+      const url = new URL("{{ url_for('teachers.manage_etudiants') }}", window.location.origin);
+      url.searchParams.set('format', 'json');
+      if (annee) url.searchParams.set('annee', annee);
+      if (filiere) url.searchParams.set('filiere', filiere);
+
+      try {
+        const response = await fetch(url.toString(), {
+          headers: {
+            'X-CSRFToken': csrfToken || ''
+          }
+        });
+        if (!response.ok) throw new Error('Erreur réseau');
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Erreur');
+
+        const listContainer = document.getElementById('students-list-container');
+        const emptyEl = document.getElementById('students-empty');
+        const countEl = document.getElementById('students-count');
+
+        const items = Array.isArray(data.data) ? data.data : [];
+        if (countEl) countEl.textContent = `(${items.length})`;
+
+        if (!listContainer) return;
+
+        if (items.length === 0) {
+          listContainer.innerHTML = '';
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          return;
+        }
+
+        if (emptyEl) emptyEl.classList.add('hidden');
+
+        const matiereIdDefaut = {{ matiere_id_defaut or 1 }};
+
+        const ul = document.createElement('ul');
+        ul.id = 'students-list';
+        ul.className = 'divide-y divide-gray-200';
+
+        ul.innerHTML = items.map((s) => {
+          const initials = `${(s.prenom || '').slice(0,1)}${(s.nom || '').slice(0,1)}`.trim() || 'ET';
+          const profileUrl = `{{ url_for('profile.view_profile', user_id=0) }}`.replace('/0', `/${s.etudiant_id}`);
+          return `
+            <li class="px-6 py-5 hover:bg-gray-50 transition-colors">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center flex-1 min-w-0">
+                  <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-sm">
+                      <span class="text-white font-semibold text-sm">${initials}</span>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex-1 min-w-0">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <h4 class="text-base font-semibold text-gray-900 truncate">${s.prenom || ''} ${s.nom || ''}</h4>
+                    </div>
+                    <div class="flex items-center space-x-3 text-sm">
+                      <span class="inline-flex items-center text-gray-700">
+                        <i class="fas fa-book text-gray-400 mr-1"></i>
+                        <span class="font-medium">${s.filiere || ''}</span>
+                      </span>
+                      <span class="text-gray-400">•</span>
+                      <span class="inline-flex items-center text-gray-700">
+                        <i class="fas fa-layer-group text-gray-400 mr-1"></i>
+                        <span class="font-medium">${s.annee || ''}</span>
+                      </span>
+                      <span class="inline-flex items-center text-gray-700">
+                        <i class="fas fa-layer-group text-gray-400 mr-1"></i>
+                        <span class="font-medium"><a class="text-blue-600 hover:text-blue-800 transition-colors" href="${profileUrl}">Voir profil</a></span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4 ml-4">
+                  <span class="text-sm text-gray-600 whitespace-nowrap">Présent aujourd'hui</span>
+                  <div class="relative presence-toggle-wrapper">
+                    <label class="toggle-switch">
+                      <input type="checkbox" class="presence-toggle" data-etudiant-id="${s.etudiant_id}" data-etudiant-nom="${(s.prenom || '')} ${(s.nom || '')}" data-matiere-id="${matiereIdDefaut}" ${s.present_aujourdhui ? 'checked' : ''} />
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="tooltip-text absolute z-10 w-48 p-2 mt-2 text-xs text-white bg-gray-800 rounded shadow-lg opacity-0 invisible transition-all duration-300">Vérification du créneau horaire...</span>
+                  </div>
+                </div>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+        listContainer.innerHTML = '';
+        listContainer.appendChild(ul);
+
+        await mettreAJourToggles();
+        bindPresenceToggles();
+      } catch (e) {
+        console.error(e);
+        showNotification('Erreur lors du chargement des étudiants', 'error');
+      }
+    }
+
+    document.getElementById('filter-annee')?.addEventListener('change', reloadStudents);
+    document.getElementById('filter-filiere')?.addEventListener('change', reloadStudents);
 
     // Exposer la fonction showNotification globalement si besoin
     window.showNotification = showNotification;

@@ -50,6 +50,38 @@ current_user.prenom }} | DEFITECH{% endblock %} {% block content %}
           </select>
         </div>
 
+        {% if filieres_enseignees and annees_enseignees %}
+        <div class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtres</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="filter-annee" class="block text-sm font-medium text-gray-700 mb-1.5">Année</label>
+              <select
+                id="filter-annee"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              >
+                <option value="">Toutes les années</option>
+                {% for a in annees_enseignees %}
+                <option value="{{ a }}" {% if selected_annee and selected_annee == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="filter-filiere" class="block text-sm font-medium text-gray-700 mb-1.5">Filière</label>
+              <select
+                id="filter-filiere"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+              >
+                <option value="">Toutes les filières</option>
+                {% for f in filieres_enseignees %}
+                <option value="{{ f }}" {% if selected_filiere and selected_filiere == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Paramètres de l'évaluation -->
         <div class="bg-gray-50 rounded-lg p-4 sm:p-6 mb-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">
@@ -212,7 +244,7 @@ current_user.prenom }} | DEFITECH{% endblock %} {% block content %}
               {% endfor %}
             </div>
             {% else %}
-            <div class="text-center py-12">
+            <div id="students-empty" class="text-center py-12">
               <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
               <h3 class="text-lg font-medium text-gray-900 mb-2">
                 Aucun étudiant trouvé
@@ -367,6 +399,122 @@ current_user.prenom }} | DEFITECH{% endblock %} {% block content %}
 </div>
 
 <script>
+  async function reloadStudentsByFilters() {
+    const annee = document.getElementById('filter-annee')?.value || '';
+    const filiere = document.getElementById('filter-filiere')?.value || '';
+
+    const url = new URL("{{ url_for('teachers.notes') }}", window.location.origin);
+    url.searchParams.set('format', 'json');
+    if (annee) url.searchParams.set('annee', annee);
+    if (filiere) url.searchParams.set('filiere', filiere);
+
+    try {
+      const response = await fetch(url.toString());
+      if (!response.ok) throw new Error('Erreur réseau');
+      const payload = await response.json();
+      if (!payload.success) throw new Error(payload.error || 'Erreur');
+
+      const data = payload.data || {};
+      const etudiants = Array.isArray(data.etudiants) ? data.etudiants : [];
+
+      const countEl = document.getElementById('student-count');
+      if (countEl) {
+        const plural = etudiants.length > 1 ? 's' : '';
+        countEl.textContent = `(${etudiants.length} étudiant${plural})`;
+      }
+
+      const listEl = document.getElementById('students-list');
+      if (!listEl) return;
+
+      if (etudiants.length === 0) {
+        listEl.innerHTML = '';
+        let emptyEl = document.getElementById('students-empty');
+        if (!emptyEl) {
+          emptyEl = document.createElement('div');
+          emptyEl.id = 'students-empty';
+          emptyEl.className = 'text-center py-12';
+          emptyEl.innerHTML = `
+            <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun étudiant trouvé</h3>
+            <p class="text-gray-500 text-sm">Aucun étudiant n'est inscrit dans vos filières et années d'enseignement.</p>
+          `;
+          listEl.parentElement?.appendChild(emptyEl);
+        }
+        emptyEl.classList.remove('hidden');
+
+        return;
+      }
+
+      const emptyEl = document.getElementById('students-empty');
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      listEl.innerHTML = etudiants
+        .map((e) => {
+          return `
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">
+              <div class="mb-3 sm:mb-0">
+                <p class="font-semibold text-gray-900">${e.nom || ''} ${e.prenom || ''}</p>
+                <div class="flex flex-wrap gap-2 mt-1 text-sm text-gray-600">
+                  <span class="inline-flex items-center">
+                    <i class="fas fa-id-card text-gray-400 mr-1.5"></i>
+                    ${e.numero_etudiant || ''}
+                  </span>
+                  <span class="inline-flex items-center">
+                    <i class="fas fa-graduation-cap text-gray-400 mr-1.5"></i>
+                    ${e.filiere || ''}
+                  </span>
+                  <span class="inline-flex items-center">
+                    <i class="fas fa-calendar text-gray-400 mr-1.5"></i>
+                    ${e.annee || ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-3">
+                <input type="hidden" class="etudiant-id" value="${e.id}" />
+                <div class="flex items-center space-x-2 relative group">
+                  <input
+                    type="number"
+                    class="note-input w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-medium"
+                    min="0"
+                    max="20"
+                    step="0.25"
+                    placeholder="Note"
+                    data-etudiant-id="${e.id}"
+                  />
+                  <span class="text-sm font-medium text-gray-500 whitespace-nowrap">/20</span>
+                  <button type="button" class="edit-note-btn hidden text-gray-400 hover:text-blue-600 transition-colors ml-2" title="Demander une correction" onclick="openModificationModal(this)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <span class="pending-badge hidden absolute -top-3 -right-3 bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full border border-yellow-200 shadow-sm" title="Modification en attente">
+                    <i class="fas fa-clock text-xs"></i>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onclick="saveIndividualNote(${e.id})"
+                  class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium text-sm whitespace-nowrap"
+                >
+                  <i class="fas fa-save mr-1.5"></i>
+                  <span class="hidden sm:inline">Enregistrer</span>
+                  <span class="sm:hidden">OK</span>
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      // Recharger les notes existantes pour le contexte actuel
+      const matiereId = document.getElementById('matiere')?.value;
+      if (matiereId) {
+        await loadExistingNotes(matiereId);
+      }
+    } catch (e) {
+      console.error('Erreur reload étudiants:', e);
+    }
+  }
+
   function loadStudents(matiereId) {
     if (!matiereId) {
       // Réinitialiser les crédits si aucune matière n'est sélectionnée
@@ -506,6 +654,9 @@ current_user.prenom }} | DEFITECH{% endblock %} {% block content %}
         loadExistingNotes(matiereId);
       });
     }
+
+    document.getElementById('filter-annee')?.addEventListener('change', reloadStudentsByFilters);
+    document.getElementById('filter-filiere')?.addEventListener('change', reloadStudentsByFilters);
   });
 
   // Validation des données communes

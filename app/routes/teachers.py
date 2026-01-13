@@ -236,9 +236,21 @@ def notes():
         filieres = []
         annees = []
 
-    etudiants = Etudiant.query.filter(
+    selected_filiere = request.args.get("filiere")
+    selected_annee = request.args.get("annee")
+    if selected_filiere and selected_filiere not in filieres:
+        selected_filiere = None
+    if selected_annee and selected_annee not in annees:
+        selected_annee = None
+
+    etudiants_query = Etudiant.query.filter(
         Etudiant.filiere.in_(filieres), Etudiant.annee.in_(annees)
-    ).all()
+    )
+    if selected_filiere:
+        etudiants_query = etudiants_query.filter(Etudiant.filiere == selected_filiere)
+    if selected_annee:
+        etudiants_query = etudiants_query.filter(Etudiant.annee == selected_annee)
+    etudiants = etudiants_query.all()
 
     matieres = Matiere.query.filter_by(enseignant_id=enseignant.id).all()
 
@@ -382,6 +394,10 @@ def notes():
                     ],
                     "notes_existantes": notes_existantes_js,
                     "dates_evaluations": dates_evaluations,
+                    "filieres": filieres,
+                    "annees": annees,
+                    "selected_filiere": selected_filiere,
+                    "selected_annee": selected_annee,
                 },
             }
         )
@@ -392,6 +408,10 @@ def notes():
         matieres=matieres,
         notes_existantes=notes_existantes_js,
         dates_evaluations=dates_evaluations,
+        filieres_enseignees=filieres,
+        annees_enseignees=annees,
+        selected_filiere=selected_filiere,
+        selected_annee=selected_annee,
     )
 
 
@@ -1071,10 +1091,22 @@ def manage_etudiants():
         flash("Aucune filière ou année assignée.", "warning")
         return render_template("enseignant/mes_etudiants.html", etudiants_data=[])
 
+    selected_filiere = request.args.get("filiere")
+    selected_annee = request.args.get("annee")
+    if selected_filiere and selected_filiere not in filieres:
+        selected_filiere = None
+    if selected_annee and selected_annee not in annees:
+        selected_annee = None
+
     # Récupérer les étudiants des filières/années enseignées
-    etudiants = Etudiant.query.filter(
+    etudiants_query = Etudiant.query.filter(
         Etudiant.filiere.in_(filieres), Etudiant.annee.in_(annees)
-    ).all()
+    )
+    if selected_filiere:
+        etudiants_query = etudiants_query.filter(Etudiant.filiere == selected_filiere)
+    if selected_annee:
+        etudiants_query = etudiants_query.filter(Etudiant.annee == selected_annee)
+    etudiants = etudiants_query.all()
 
     # Récupérer les matières de l'enseignant
     matieres = Matiere.query.filter_by(enseignant_id=enseignant.id).all()
@@ -1116,6 +1148,8 @@ def manage_etudiants():
                 ],
                 "filieres": filieres,
                 "annees": annees,
+                "selected_filiere": selected_filiere,
+                "selected_annee": selected_annee,
             }
         )
 
@@ -1124,6 +1158,8 @@ def manage_etudiants():
         etudiants_data=etudiants_data,
         filieres_enseignees=filieres,
         annees_enseignees=annees,
+        selected_filiere=selected_filiere,
+        selected_annee=selected_annee,
         presence_status=presence_status,
         matiere_id_defaut=matiere_id_defaut,
     )

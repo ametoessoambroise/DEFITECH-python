@@ -267,7 +267,7 @@ const UI = {
         if (!confirm('Voulez-vous vraiment supprimer cette conversation ?')) return;
 
         try {
-            const response = await fetch(`/api/ai/conversations/${id}/delete`, {
+            const response = await fetch(`/api/ai/conversations/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': CONFIG.csrfToken
