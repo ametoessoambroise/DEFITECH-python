@@ -131,6 +131,7 @@ Format Markdown avec :
         code_context: Optional[Dict] = None,
         tool_results: Optional[List[Dict]] = None,
         mentioned_files: Optional[List[str]] = None,
+        tool_calls_log: Optional[str] = None,
     ) -> str:
         """Construit la section contexte de manière concise."""
         sections = []
@@ -210,6 +211,17 @@ Format Markdown avec :
                 "\n> Utilise ces résultats dans ta réponse. Ne redemande PAS ces infos."
             )
 
+        if tool_calls_log:
+            log_text = str(tool_calls_log)
+            # safety: keep this short even if client didn't truncate
+            if len(log_text) > 8000:
+                log_text = log_text[-8000:]
+            sections.append("\n## HISTORIQUE LOCAL DES OUTILS (.intellitech/tools_calls.jsonl)")
+            sections.append(
+                "\n> Ceci est un journal local des appels d'outils déjà effectués. Utilise-le pour éviter de répéter les mêmes commandes/lectures."
+            )
+            sections.append(f"```jsonl\n{log_text}\n```")
+
         if mentioned_files:
             sections.append("\n## FICHIERS MENTIONNÉS")
             for path in mentioned_files[:20]:
@@ -227,6 +239,7 @@ Format Markdown avec :
         tool_results: Optional[List[Dict]] = None,
         conversation_history: Optional[List[Dict]] = None,
         mentioned_files: Optional[List[str]] = None,
+        tool_calls_log: Optional[str] = None,
     ) -> str:
         """Construit le prompt complet de manière concise."""
         parts = []
@@ -236,7 +249,7 @@ Format Markdown avec :
 
         # Contexte
         context = IntelitechPromptBuilder.build_context_section(
-            code_context, tool_results, mentioned_files
+            code_context, tool_results, mentioned_files, tool_calls_log
         )
         if context:
             parts.append("\n---\n" + context)

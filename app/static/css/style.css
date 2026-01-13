@@ -991,3 +991,39 @@ input:checked + .toggle-slider:before {
   border-top: 1px solid var(--border-color);
   margin: 2rem 0;
 }
+
+/* Intelitech tool calls (web UI) */
+.intellitech-tool-call {
+  margin: 10px 0;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.intellitech-tool-placeholder {
+  display: none;
+  font-size: 12px;
+  color: rgba(107, 114, 128, 1);
+}
+
+.intellitech-tool-raw {
+  margin: 0;
+  font-size: 12px;
+  overflow: auto;
+}
+
+html.hide-intellitech-tools .intellitech-tool-raw {
+  display: none;
+}
+
+html.hide-intellitech-tools .intellitech-tool-placeholder {
+  display: block;
+}
+
+/* Fetch loader */
+.loader-container.fetch-loader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

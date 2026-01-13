@@ -751,6 +751,14 @@
           <i class="fas fa-sun hidden" aria-hidden="true"></i>
         </button>
         <button
+          id="toolCallsToggle"
+          class="p-2 rounded-lg text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-dark-surface transition-all"
+          aria-label="Afficher/masquer les appels d'outils Intelitech"
+          title="Afficher/masquer les appels d'outils"
+        >
+          <i class="fas fa-wrench"></i>
+        </button>
+        <button
           id="newChat"
           class="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-lg shadow-primary-500/30 transition-all transform hover:scale-105 active:scale-95"
           aria-label="Nouveau chat"
@@ -913,50 +921,71 @@
             >
               <div id="attachmentPreview" class="hidden"></div>
               <label for="userInput" class="sr-only">Votre message</label>
-              <textarea
-                id="userInput"
-                aria-label="Tapez votre message ici"
-                rows="1"
-                placeholder="Pose ta question ici..."
-                class="w-full pl-6 pr-14 py-4 rounded-2xl bg-gray-100 dark:bg-dark-surface border-2 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-dark-bg focus:ring-0 resize-none transition-all duration-200 shadow-sm text-sm"
-                style="min-height: 56px; max-height: 200px"
-              ></textarea>
 
-              <div class="absolute right-3 bottom-3 flex items-center gap-2">
-                <input
-                  type="file"
-                  id="fileInput"
-                  class="hidden"
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.txt"
-                />
-                <button
-                  type="button"
-                  id="voiceInputBtn"
-                  class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                  title="Saisie vocale"
-                  aria-label="Saisie vocale"
-                  aria-hidden="false"
-                >
-                  <i class="fas fa-microphone"></i>
-                </button>
-                <button
-                  type="button"
-                  id="attachBtn"
-                  class="p-2 text-gray-400 hover:text-primary-500 transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                  title="Joindre un fichier"
-                  aria-label="Joindre un fichier"
-                >
-                  <i class="fas fa-paperclip"></i>
-                </button>
-                <button
-                  type="submit"
-                  id="sendBtn"
-                  class="p-2 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95"
-                  aria-label="Envoyer le message"
-                >
-                  <i class="fas fa-paper-plane text-sm"></i>
-                </button>
+              <div class="rounded-2xl bg-gray-100 dark:bg-dark-surface border border-gray-200 dark:border-dark-border overflow-hidden">
+                <textarea
+                  id="userInput"
+                  aria-label="Tapez votre message ici"
+                  rows="1"
+                  placeholder="Un plan ? je suis là pour ça..."
+                  class="w-full px-5 pt-5 pb-4 bg-transparent focus:ring-0 resize-none transition-all duration-200 text-sm"
+                  style="min-height: 56px; max-height: 200px"
+                ></textarea>
+
+                <div class="flex items-center justify-between px-4 pb-3">
+                  <div class="flex items-center gap-3 text-sm text-gray-500">
+                    <button
+                      type="button"
+                      id="attachBtn"
+                      class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/70 dark:hover:bg-dark-bg/50 transition-colors"
+                      title="Joindre un fichier"
+                      aria-label="Joindre un fichier"
+                    >
+                      <i class="fas fa-plus"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="px-3 h-9 rounded-xl flex items-center gap-2 hover:bg-white/70 dark:hover:bg-dark-bg/50 transition-colors"
+                      title="Mode code"
+                      aria-label="Mode code"
+                    >
+                      <i class="fas fa-code"></i>
+                      <span>Code</span>
+                    </button>
+
+                    <div class="h-5 w-px bg-gray-300/70 dark:bg-gray-600/60"></div>
+                    <span class="text-xs font-medium">DefAI-1.1 Raisonement/span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="file"
+                      id="fileInput"
+                      class="hidden"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx,.txt"
+                    />
+                    <button
+                      type="button"
+                      id="voiceInputBtn"
+                      class="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white/70 dark:hover:bg-dark-bg/50 transition-colors"
+                      title="Saisie vocale"
+                      aria-label="Saisie vocale"
+                      aria-hidden="false"
+                    >
+                      <i class="fas fa-microphone"></i>
+                    </button>
+                    <button
+                      type="submit"
+                      id="sendBtn"
+                      class="w-10 h-10 bg-primary-600 text-white rounded-full shadow-lg shadow-primary-500/30 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                      aria-label="Envoyer le message"
+                    >
+                      <i class="fas fa-arrow-up text-sm"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
             </form>
             <p class="text-center text-[10px] text-gray-400 mt-2">

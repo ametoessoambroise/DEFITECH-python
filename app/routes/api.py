@@ -316,6 +316,7 @@ def defai_chat(current_user):
         source = data.get("source", "vscode_extension")
         tool_results = data.get("tool_results", [])
         mentioned_files = data.get("mentioned_files", [])
+        tool_calls_log = data.get("tool_calls_log")
         use_intellitech_system = source == "vscode_extension"
 
         # Récupérer l'historique de conversation (derniers 10 messages)
@@ -361,6 +362,7 @@ def defai_chat(current_user):
                 tool_results=tool_results,
                 conversation_history=messages_history,
                 mentioned_files=mentioned_files,
+                tool_calls_log=tool_calls_log,
             )
 
             # Appeler Gemini directement avec use_system_prompt=False (déjà dans le prompt)
@@ -475,6 +477,69 @@ def defai_chat(current_user):
             ),
             500,
         )
+
+
+@api_bp.route("/defai/conversations/<int:conversation_id>", methods=["GET"])
+@token_required
+def get_defai_conversation_messages(current_user, conversation_id: int):
+    """Récupère les messages d'une conversation DEFAI (pour l'extension VS Code)."""
+    from app.models.ai_assistant import AIConversation, AIMessage
+    from sqlalchemy import asc
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        conv = AIConversation.query.get(conversation_id)
+        if not conv or conv.user_id != current_user.id:
+            return jsonify({"success": False, "error": "Conversation non trouvée"}), 404
+
+        messages = (
+            AIMessage.query.filter_by(conversation_id=conversation_id)
+            .order_by(asc(AIMessage.created_at), asc(AIMessage.message_order))
+            .limit(200)
+            .all()
+        )
+
+        formatted = [
+            {
+                "id": m.id,
+                "message_type": m.message_type,
+                "content": m.content,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in messages
+        ]
+
+        return jsonify({"success": True, "conversation": conv.to_dict(), "messages": formatted})
+
+    except Exception as e:
+        logger.exception(f"Erreur récupération conversation DEFAI: {e}")
+        return jsonify({"success": False, "error": "Erreur serveur interne"}), 500
+
+
+@api_bp.route("/defai/conversations/<int:conversation_id>", methods=["DELETE"])
+@token_required
+def delete_defai_conversation(current_user, conversation_id: int):
+    """Supprime (désactive) une conversation DEFAI (pour l'extension VS Code)."""
+    from app.models.ai_assistant import AIConversation
+    from app.extensions import db
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        conv = AIConversation.query.get(conversation_id)
+        if not conv or conv.user_id != current_user.id:
+            return jsonify({"success": False, "error": "Conversation non trouvée"}), 404
+
+        conv.is_active = False
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Erreur suppression conversation DEFAI: {e}")
+        return jsonify({"success": False, "error": "Erreur serveur interne"}), 500
 
 
 @api_bp.route("/defai/conversations", methods=["GET"])

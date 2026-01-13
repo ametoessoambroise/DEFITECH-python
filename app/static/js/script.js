@@ -43,6 +43,62 @@ const State = {
 const UI = {
     elements: {},
 
+    setupToolCallsVisibility() {
+        const btn = document.getElementById('toolCallsToggle');
+        const apply = (show) => {
+            const shouldShow = show === true;
+            document.documentElement.classList.toggle('hide-intellitech-tools', !shouldShow);
+            try {
+                localStorage.setItem('showIntellitechTools', shouldShow ? '1' : '0');
+            } catch {
+                // ignore
+            }
+        };
+
+        let show = true;
+        try {
+            const stored = localStorage.getItem('showIntellitechTools');
+            if (stored === '0') show = false;
+        } catch {
+            // ignore
+        }
+
+        apply(show);
+
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const isHidden = document.documentElement.classList.contains('hide-intellitech-tools');
+                apply(isHidden);
+            });
+        }
+    },
+
+    showFetchLoader(label) {
+        const container = document.getElementById('dynamicLoaders');
+        if (!container) return;
+
+        let loader = document.getElementById('fetchLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'fetchLoader';
+            loader.className = 'loader-container fetch-loader';
+            container.appendChild(loader);
+        }
+
+        loader.innerHTML = `
+            <i class="fas fa-spinner fa-spin loader-icon"></i>
+            <span class="text-sm font-medium">${this.escapeHtml(label || 'Chargement...')}</span>
+        `;
+    },
+
+    hideFetchLoader() {
+        const loader = document.getElementById('fetchLoader');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => loader.remove(), 300);
+        }
+    },
+
     init() {
         // Initialize elements
         for (const [key, selector] of Object.entries(CONFIG.selectors)) {
@@ -69,6 +125,8 @@ const UI = {
         }
 
         this.loadConversations();
+
+        this.setupToolCallsVisibility();
 
         // Scroll listener for messages (existing)
         if (this.elements.messages) {
@@ -118,6 +176,7 @@ const UI = {
         State.convPagination.isLoading = true;
 
         try {
+            this.showFetchLoader('Chargement des conversations...');
             const response = await fetch(`${CONFIG.endpoints.history}?page=${State.convPagination.page}`);
             if (!response.ok) throw new Error('Failed to load conversations');
 
@@ -150,9 +209,10 @@ const UI = {
                 const inactiveClass = "border border-transparent";
 
                 const time = new Date(conv.updated_at).toLocaleDateString();
+                const url = conv.link ? `/api/ai/chat/${conv.link}` : '/defAI';
 
                 el.innerHTML = `
-                    <a href="/defAI" class="${baseClass} ${isActive ? activeClass : inactiveClass} flex-1 min-w-0" data-id="${conv.id}">
+                    <a href="${url}" class="${baseClass} ${isActive ? activeClass : inactiveClass} flex-1 min-w-0" data-id="${conv.id}" data-link="${conv.link || ''}">
                         <div class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                             <i class="fas fa-comments text-xs"></i>
                         </div>
@@ -189,6 +249,7 @@ const UI = {
             console.error('Error loading conversations:', error);
             this.showToast('Impossible de charger les conversations', 'error');
         } finally {
+            this.hideFetchLoader();
             State.convPagination.isLoading = false;
         }
     },
@@ -256,9 +317,9 @@ const UI = {
         // Load Content
         this.loadConversationHistory(id);
 
-        // Update URL (URL front uniquement, la page /defAI existe côté Flask)
+        // Update URL (deep link conversation)
         if (pushState) {
-            const url = '/defAI';
+            const url = linkPart ? `/api/ai/chat/${linkPart}` : '/defAI';
             window.history.pushState({ conversationId: id }, '', url);
         }
     },
@@ -276,6 +337,7 @@ const UI = {
 
     async loadConversationHistory(conversationId) {
         try {
+            this.showFetchLoader('Chargement de la conversation...');
             State.pagination = { page: 1, hasMore: true, isLoading: false }; // Reset pagination
 
             const response = await fetch(`/api/ai/conversations/${conversationId}?page=1`);
@@ -307,6 +369,8 @@ const UI = {
         } catch (error) {
             console.error('Error loading history:', error);
             this.showToast('Erreur lors du chargement de la conversation', 'error');
+        } finally {
+            this.hideFetchLoader();
         }
     },
 
@@ -318,6 +382,7 @@ const UI = {
         const currentHeight = this.elements.messages.scrollHeight;
 
         try {
+            this.showFetchLoader('Chargement...');
             const response = await fetch(`/api/ai/conversations/${State.currentConversationId}?page=${nextPage}`);
             if (!response.ok) throw new Error('Failed to load more messages');
 
@@ -368,6 +433,7 @@ const UI = {
             console.error('Error loading more messages:', error);
             this.showToast('Impossible de charger plus de messages', 'error');
         } finally {
+            this.hideFetchLoader();
             State.pagination.isLoading = false;
         }
     },
@@ -1064,6 +1130,20 @@ const UI = {
 
     formatAIContent(content, attachments = []) {
         let processed = content;
+
+        // Replace Intelitech tool calls with a togglable block
+        // Format: [INTELLITECH_TOOL: tool_name, {json}]
+        const toolPattern = /\[INTELLITECH_TOOL:\s*([\w_]+)\s*,\s*([\s\S]*?)\]/gi;
+        processed = processed.replace(toolPattern, (match, toolName, payload) => {
+            const raw = `${toolName}, ${payload}`.trim();
+            const safe = this.escapeHtml(raw);
+            return `
+<div class="intellitech-tool-call">
+  <div class="intellitech-tool-placeholder">Outil Intelitech (caché)</div>
+  <pre class="intellitech-tool-raw"><code>${safe}</code></pre>
+</div>
+`;
+        });
 
         // Match [Image en cours de génération: FILENAME]
         const imagePattern = /\[Image en cours de génération: ([^\]]+)\]/g;
